@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>New Scan - Penetration Testing Framework</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <span class="brand-icon">🛡️</span>
+                <span class="brand-name">PenTest Framework</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html">Dashboard</a></li>
+                <li><a href="new-scan.html" class="active">New Scan</a></li>
+                <li><a href="scans.html">All Scans</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="page-header">
+            <h1>Create New Scan</h1>
+            <p class="subtitle">Configure and launch a network security scan</p>
+        </div>
+
+        <div class="form-container">
+            <div class="card">
+                <form id="scan-form">
+                    <!-- Scan Name -->
+                    <div class="form-group">
+                        <label for="scan-name">
+                            Scan Name *
+                            <span class="field-hint">Give your scan a descriptive name</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="scan-name" 
+                            class="form-control" 
+                            placeholder="e.g., Office Network Security Audit"
+                            required
+                        >
+                    </div>
+
+                    <!-- Target -->
+                    <div class="form-group">
+                        <label for="target">
+                            Target IP/Network *
+                            <span class="field-hint">IP address (192.168.1.100) or CIDR notation (192.168.1.0/24)</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="target" 
+                            class="form-control" 
+                            placeholder="e.g., 192.168.1.0/24 or 127.0.0.1"
+                            required
+                        >
+                        <small class="form-text">
+                            ⚠️ Only scan networks you own or have explicit permission to test
+                        </small>
+                    </div>
+
+                    <!-- Scan Type -->
+                    <div class="form-group">
+                        <label for="scan-type">
+                            Scan Type *
+                            <span class="field-hint">Choose the scanning strategy</span>
+                        </label>
+                        <select id="scan-type" class="form-control" required>
+                            <option value="">-- Select Scan Type --</option>
+                            <option value="quick">Quick Scan (Fast, common ports only)</option>
+                            <option value="service">Service Scan (Detect services and versions)</option>
+                            <option value="stealth">Stealth Scan (Slower, harder to detect)</option>
+                            <option value="full">Full Scan (Comprehensive, all ports)</option>
+                        </select>
+                    </div>
+
+                    <!-- Scan Type Descriptions -->
+                    <div id="scan-type-info" class="info-box" style="display: none;">
+                        <div id="quick-info" class="scan-info" style="display: none;">
+                            <strong>⚡ Quick Scan</strong>
+                            <p>Scans the 100 most common ports. Fast and efficient for initial reconnaissance.</p>
+                            <p><strong>Speed:</strong> ~30 seconds per host</p>
+                        </div>
+                        <div id="service-info" class="scan-info" style="display: none;">
+                            <strong>🔍 Service Scan</strong>
+                            <p>Detects service versions and runs default scripts. Best for vulnerability analysis.</p>
+                            <p><strong>Speed:</strong> ~2-3 minutes per host</p>
+                        </div>
+                        <div id="stealth-info" class="scan-info" style="display: none;">
+                            <strong>🥷 Stealth Scan</strong>
+                            <p>Slower, harder to detect by firewalls and IDS systems.</p>
+                            <p><strong>Speed:</strong> ~5-10 minutes per host</p>
+                        </div>
+                        <div id="full-info" class="scan-info" style="display: none;">
+                            <strong>🎯 Full Scan</strong>
+                            <p>Comprehensive scan of all 65,535 ports with OS detection and scripts.</p>
+                            <p><strong>Speed:</strong> ~10-20 minutes per host</p>
+                        </div>
+                    </div>
+
+                    <!-- Authorization Warning -->
+                    <div class="warning-box">
+                        <div class="warning-icon">⚠️</div>
+                        <div class="warning-content">
+                            <strong>Legal Warning</strong>
+                            <p>Unauthorized network scanning is illegal. Only scan systems you own or have explicit written permission to test. Violations can result in criminal prosecution.</p>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="authorization" required>
+                                <span>I confirm that I am authorized to scan this target</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div class="form-actions">
+                        <button type="submit" class="btn btn-primary" id="submit-btn">
+                            🚀 Start Scan
+                        </button>
+                        <a href="index.html" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+
+                <!-- Success Message -->
+                <div id="success-message" class="alert alert-success" style="display: none;">
+                    <strong>✅ Scan Started Successfully!</strong>
+                    <p>Your scan has been queued and will begin shortly.</p>
+                    <a href="index.html" class="btn btn-primary btn-small">View Dashboard</a>
+                </div>
+
+                <!-- Error Message -->
+                <div id="error-message" class="alert alert-danger" style="display: none;">
+                    <strong>❌ Error</strong>
+                    <p id="error-text"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/new-scan.js"></script>
+</body>
+</html>

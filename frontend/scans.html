@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Scans - Penetration Testing Framework</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <span class="brand-icon">🛡️</span>
+                <span class="brand-name">PenTest Framework</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html">Dashboard</a></li>
+                <li><a href="new-scan.html">New Scan</a></li>
+                <li><a href="scans.html" class="active">All Scans</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="page-header">
+            <h1>All Scans</h1>
+            <p class="subtitle">View and manage all security scans</p>
+        </div>
+
+        <div class="section-header">
+            <h2>Scan History</h2>
+            <a href="new-scan.html" class="btn btn-primary">+ New Scan</a>
+        </div>
+
+        <div class="card">
+            <div id="scans-loading" class="loading">
+                <div class="spinner"></div>
+                <p>Loading scans...</p>
+            </div>
+
+            <div id="scans-table" style="display: none;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Scan Name</th>
+                            <th>Target</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Hosts</th>
+                            <th>Vulnerabilities</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scans-tbody">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+
+                <!-- Pagination -->
+                <div id="pagination" style="display: flex; justify-content: center; margin-top: 2rem; gap: 0.5rem;">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+
+            <div id="no-scans" style="display: none; text-align: center; padding: 3rem;">
+                <div style="font-size: 3rem; margin-bottom: 1rem;">📊</div>
+                <h3>No scans yet</h3>
+                <p style="color: #666; margin: 1rem 0;">Create your first scan to start discovering vulnerabilities</p>
+                <a href="new-scan.html" class="btn btn-primary">Create First Scan</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/scans.js"></script>
+</body>
+</html>

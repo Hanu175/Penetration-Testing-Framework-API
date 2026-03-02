@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scan Details - Penetration Testing Framework</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <span class="brand-icon">🛡️</span>
+                <span class="brand-name">PenTest Framework</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html">Dashboard</a></li>
+                <li><a href="new-scan.html">New Scan</a></li>
+                <li><a href="scans.html">All Scans</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Loading State -->
+        <div id="loading-state" class="loading">
+            <div class="spinner"></div>
+            <p>Loading scan details...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="error-state" style="display: none;">
+            <div class="card">
+                <div style="text-align: center; padding: 2rem;">
+                    <h2 style="color: #dc3545;">❌ Error</h2>
+                    <p id="error-message-text" style="color: #666; margin: 1rem 0;"></p>
+                    <a href="index.html" class="btn btn-primary">Back to Dashboard</a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div id="content" style="display: none;">
+            <!-- Page Header -->
+            <div class="page-header" style="margin-bottom: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h1 id="scan-name" style="margin-bottom: 0.5rem;">Scan Details</h1>
+                        <p class="subtitle" id="scan-target"></p>
+                    </div>
+                    <div>
+                        <span id="scan-status-badge" class="badge"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Scan Info Cards -->
+            <div class="stats-grid" style="margin-bottom: 2rem;">
+                <div class="stat-card">
+                    <div class="stat-icon blue">🖥️</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Hosts Discovered</div>
+                        <div class="stat-value" id="total-hosts">0</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon blue">🔌</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Open Ports</div>
+                        <div class="stat-value" id="total-ports">0</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon red">⚠️</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Total Vulnerabilities</div>
+                        <div class="stat-value" id="total-vulns">0</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon orange">🔴</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Critical Issues</div>
+                        <div class="stat-value" id="critical-vulns">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vulnerabilities Section -->
+            <div class="section-header">
+                <h2>Discovered Vulnerabilities</h2>
+            </div>
+
+            <div id="vulnerabilities-container">
+                <!-- Populated by JavaScript -->
+            </div>
+
+            <!-- No Vulnerabilities Message -->
+            <div id="no-vulnerabilities" style="display: none;">
+                <div class="card">
+                    <div style="text-align: center; padding: 2rem;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">✅</div>
+                        <h3 style="color: #28a745;">No Vulnerabilities Found</h3>
+                        <p style="color: #666;">Great! This scan didn't identify any known vulnerabilities.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Back Button -->
+            <div style="margin-top: 2rem; text-align: center;">
+                <a href="index.html" class="btn btn-secondary">Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/scan-details.js"></script>
+</body>
+</html>

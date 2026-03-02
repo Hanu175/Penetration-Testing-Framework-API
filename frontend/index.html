@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Penetration Testing Framework - Dashboard</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-brand">
+                <span class="brand-icon">🛡️</span>
+                <span class="brand-name">PenTest Framework</span>
+            </div>
+            <ul class="nav-menu">
+                <li><a href="index.html" class="active">Dashboard</a></li>
+                <li><a href="new-scan.html">New Scan</a></li>
+                <li><a href="scans.html">All Scans</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="page-header">
+            <h1>Security Dashboard</h1>
+            <p class="subtitle">Real-time penetration testing insights</p>
+        </div>
+
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon blue">📊</div>
+                <div class="stat-content">
+                    <div class="stat-label">Total Scans</div>
+                    <div class="stat-value" id="total-scans">0</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon red">🔴</div>
+                <div class="stat-content">
+                    <div class="stat-label">Critical Vulnerabilities</div>
+                    <div class="stat-value" id="critical-vulns">0</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon orange">🟠</div>
+                <div class="stat-content">
+                    <div class="stat-label">High Vulnerabilities</div>
+                    <div class="stat-value" id="high-vulns">0</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon yellow">🟡</div>
+                <div class="stat-content">
+                    <div class="stat-label">Medium Vulnerabilities</div>
+                    <div class="stat-value" id="medium-vulns">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Scans Section -->
+        <div class="section-header">
+            <h2>Recent Scans</h2>
+            <a href="new-scan.html" class="btn btn-primary">+ New Scan</a>
+        </div>
+
+        <div class="card">
+            <div id="recent-scans-loading" class="loading">
+                <div class="spinner"></div>
+                <p>Loading scans...</p>
+            </div>
+            <div id="recent-scans-table" style="display: none;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Scan Name</th>
+                            <th>Target</th>
+                            <th>Status</th>
+                            <th>Hosts</th>
+                            <th>Vulnerabilities</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="scans-tbody">
+                        <!-- Populated by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="no-scans" style="display: none; text-align: center; padding: 40px;">
+                <p style="color: #888;">No scans yet. Create your first scan to get started!</p>
+                <a href="new-scan.html" class="btn btn-primary" style="margin-top: 20px;">Create First Scan</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/dashboard.js"></script>
+</body>
+</html>
