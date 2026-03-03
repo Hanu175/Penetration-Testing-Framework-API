@@ -308,4 +308,10 @@ Only test on:
 
 # ‼️Project  is Still in progress‼️
 
+Tasks remaining 
+- PDF generation and download 
+- Scan report download
+- delete an entry from dashboard
+- Metasploit integration --> you firstly have to install metasploit by disabling your windows defender else it won't work
+
 ⭐ If you found this project useful, consider giving it a star!
