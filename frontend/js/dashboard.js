@@ -107,13 +107,26 @@ function createScanRow(scan) {
     
     // Actions
     const tdActions = document.createElement('td');
+    tdActions.style.display = 'flex';
+    tdActions.style.gap = '0.5rem';
+
+    // View button
     const viewBtn = document.createElement('a');
     viewBtn.href = `scan-details.html?id=${scan.id}`;
     viewBtn.className = 'btn btn-secondary btn-small';
     viewBtn.textContent = 'View';
     tdActions.appendChild(viewBtn);
+
+    // Delete button
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'btn btn-danger btn-small';
+    deleteBtn.textContent = '🗑️';
+    deleteBtn.title = 'Delete scan';
+    deleteBtn.onclick = () => deleteScan(scan.id);
+    tdActions.appendChild(deleteBtn);
+
     tr.appendChild(tdActions);
-    
+        
     return tr;
 }
 
@@ -175,4 +188,44 @@ function showError(message) {
             </td>
         </tr>
     `;
+}
+
+// Delete scan function
+async function deleteScan(scanId) {
+    // Confirm deletion
+    const confirmed = confirm(
+        `⚠️ Are you sure you want to delete this scan?\n\n` +
+        `This will permanently delete:\n` +
+        `- Scan data\n` +
+        `- All discovered hosts and ports\n` +
+        `- All vulnerabilities\n` +
+        `- All scan logs\n\n` +
+        `This action cannot be undone!`
+    );
+    
+    if (!confirmed) {
+        return;
+    }
+    
+    try {
+        const response = await fetch(`${API_URL}/scans/${scanId}`, {
+            method: 'DELETE'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            // Show success message
+            alert('✅ Scan deleted successfully!');
+            
+            // Reload dashboard
+            loadDashboard();
+        } else {
+            alert(`❌ Error: ${data.error}`);
+        }
+        
+    } catch (error) {
+        console.error('Error deleting scan:', error);
+        alert('❌ Failed to delete scan. Make sure the API server is running.');
+    }
 }

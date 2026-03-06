@@ -45,7 +45,26 @@
         <div id="content" style="display: none;">
             <!-- Page Header -->
             <div class="page-header" style="margin-bottom: 2rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <h1 id="scan-name" style="margin-bottom: 0.5rem;">Scan Details</h1>
+                        <p class="subtitle" id="scan-target"></p>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <span id="scan-status-badge" class="badge"></span>
+                        <div class="dropdown">
+                            <button class="btn btn-primary" id="download-btn">
+                                📥 Download Report
+                            </button>
+                            <div class="dropdown-content" id="download-menu" style="display: none;">
+                                <a href="#" onclick="generateReport('html'); return false;">HTML Report</a>
+                                <a href="#" onclick="generateReport('pdf'); return false;">PDF Report</a>
+                                <a href="#" onclick="generateReport('csv'); return false;">CSV Export</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- <div style="display: flex; justify-content: space-between; align-items: center;">
                     <div>
                         <h1 id="scan-name" style="margin-bottom: 0.5rem;">Scan Details</h1>
                         <p class="subtitle" id="scan-target"></p>
@@ -53,7 +72,8 @@
                     <div>
                         <span id="scan-status-badge" class="badge"></span>
                     </div>
-                </div>
+                </div> -->
+                
             </div>
 
             <!-- Scan Info Cards -->
@@ -87,6 +107,28 @@
                     <div class="stat-content">
                         <div class="stat-label">Critical Issues</div>
                         <div class="stat-value" id="critical-vulns">0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Open Ports Section -->
+            <div class="section-header" style="margin-top: 2rem;">
+                <h2>Open Ports Discovered</h2>
+                 <button id="toggle-ports-view" class="btn btn-secondary btn-small">
+                    📊 Switch to Card View
+                </button>
+            </div>
+
+            <div id="ports-container">
+                <!-- Populated by JavaScript -->
+            </div>
+
+            <div id="no-ports" style="display: none;">
+                <div class="card">
+                    <div style="text-align: center; padding: 2rem;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">🔒</div>
+                        <h3>No Open Ports Found</h3>
+                        <p style="color: #666;">The scan did not detect any open ports on this target.</p>
                     </div>
                 </div>
             </div>
