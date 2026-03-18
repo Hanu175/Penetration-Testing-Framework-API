@@ -31,36 +31,57 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 // Load scan details and vulnerabilities
-// Load scan details and vulnerabilities
 async function loadScanDetails() {
     try {
+        console.log(`Loading scan details for ID: ${scanId}`);
+        
         // Fetch scan details
         const scanResponse = await fetch(`${API_URL}/scans/${scanId}`);
         if (!scanResponse.ok) {
-            throw new Error('Scan not found');
+            throw new Error(`Scan not found (HTTP ${scanResponse.status})`);
         }
         const scan = await scanResponse.json();
+        console.log('Scan data loaded:', scan);
         
         // Fetch vulnerabilities
         const vulnResponse = await fetch(`${API_URL}/scans/${scanId}/vulnerabilities`);
         const vulnData = await vulnResponse.json();
+        console.log(`Loaded ${vulnData.vulnerabilities?.length || 0} vulnerabilities`);
         
-        // NEW: Fetch ports
+        // Fetch ports
         const portsResponse = await fetch(`${API_URL}/scans/${scanId}/ports`);
         const portsData = await portsResponse.json();
+        console.log(`Loaded ${portsData.ports?.length || 0} ports`);
         
         // Hide loading, show content
-        loadingState.style.display = 'none';
-        content.style.display = 'block';
+        if (loadingState) loadingState.style.display = 'none';
+        if (content) content.style.display = 'block';
         
-        // Update page with scan data
+        // Update page sections
         updateScanInfo(scan);
-        updatePorts(portsData.ports || []); // NEW: Display ports
+        updatePorts(portsData.ports || []);
         updateVulnerabilities(vulnData.vulnerabilities || []);
         
+        // NEW: Load attack results immediately if they exist
+        setTimeout(() => {
+            loadAttackResults();
+        }, 1000);
+        
+        console.log('✅ Scan details loaded successfully');
+        
     } catch (error) {
-        console.error('Error loading scan:', error);
-        showError('Failed to load scan details. The scan may not exist or the API server may be down.');
+        console.error('❌ Error loading scan:', error);
+        
+        if (loadingState) loadingState.style.display = 'none';
+        if (content) {
+            content.innerHTML = `
+                <div class="alert alert-danger">
+                    <strong>❌ Error Loading Scan</strong>
+                    <p>${error.message}</p>
+                    <a href="index.html" class="btn btn-primary">Back to Dashboard</a>
+                </div>
+            `;
+        }
     }
 }
 
@@ -694,3 +715,514 @@ function createPortsCardView(ports, container) {
     
     container.appendChild(cardsContainer);
 }
+
+// ==================== ATTACK SIMULATION ====================
+
+function showAttackSimulationDialog() {
+    console.log(`showAttackSimulationDialog called with scanId: ${scanId}`);
+    
+    if (!scanId) {
+        alert('Error: No scan ID available for attack simulation');
+        console.error('Cannot show attack dialog: scanId is null/undefined');
+        return;
+    }
+    
+    const dialog = document.createElement('div');
+    dialog.className = 'modal-overlay';
+    dialog.innerHTML = `
+        <div class="modal-content" style="max-width: 700px;">
+            <h2 style="color: #dc3545; margin-bottom: 1rem;">⚠️ Attack Simulation Warning</h2>
+            
+            <div style="background: #fff3cd; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                <strong>⚠️ CRITICAL WARNING</strong>
+                <p style="margin: 0.5rem 0;">This will perform REAL attacks on the target system!</p>
+                <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                    <li>SQL Injection attempts</li>
+                    <li>XSS injection attempts</li>
+                    <li>Directory traversal attacks</li>
+                    <li>Bruteforce attempts</li>
+                    <li>Service enumeration</li>
+                </ul>
+                <p style="margin: 0.5rem 0 0 0; color: #856404;">
+                    <strong>ONLY use on systems you own or have written authorization to test!</strong>
+                </p>
+            </div>
+            
+            <h3 style="margin-top: 1.5rem;">Select Attack Types:</h3>
+            
+            <div style="margin: 1rem 0; max-height: 300px; overflow-y: auto;">
+                <label style="display: block; margin: 0.5rem 0; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; cursor: pointer;">
+                    <input type="checkbox" value="port_scan_detection" checked> 
+                    <strong>Port Scan Detection Test</strong>
+                    <span style="color: #666; font-size: 0.9rem; display: block; margin-left: 1.5rem;">Tests if rapid scanning triggers IDS/IPS</span>
+                </label>
+                
+                <label style="display: block; margin: 0.5rem 0; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; cursor: pointer;">
+                    <input type="checkbox" value="sql_injection"> 
+                    <strong>SQL Injection Test</strong>
+                    <span style="color: #666; font-size: 0.9rem; display: block; margin-left: 1.5rem;">Tests database security with common SQL payloads</span>
+                </label>
+                
+                <label style="display: block; margin: 0.5rem 0; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; cursor: pointer;">
+                    <input type="checkbox" value="xss"> 
+                    <strong>Cross-Site Scripting (XSS)</strong>
+                    <span style="color: #666; font-size: 0.9rem; display: block; margin-left: 1.5rem;">Tests input sanitization with JavaScript payloads</span>
+                </label>
+                
+                <label style="display: block; margin: 0.5rem 0; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; cursor: pointer;">
+                    <input type="checkbox" value="directory_traversal"> 
+                    <strong>Directory Traversal</strong>
+                    <span style="color: #666; font-size: 0.9rem; display: block; margin-left: 1.5rem;">Tests file access controls</span>
+                </label>
+                
+                <label style="display: block; margin: 0.5rem 0; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; cursor: pointer;">
+                    <input type="checkbox" value="http_methods"> 
+                    <strong>HTTP Methods Test</strong>
+                    <span style="color: #666; font-size: 0.9rem; display: block; margin-left: 1.5rem;">Checks for dangerous HTTP methods (PUT, DELETE)</span>
+                </label>
+                
+                <label style="display: block; margin: 0.5rem 0; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; cursor: pointer;">
+                    <input type="checkbox" value="directory_bruteforce"> 
+                    <strong>Directory Bruteforce</strong>
+                    <span style="color: #666; font-size: 0.9rem; display: block; margin-left: 1.5rem;">Discovers hidden directories</span>
+                </label>
+                
+                <label style="display: block; margin: 0.5rem 0; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; cursor: pointer;">
+                    <input type="checkbox" value="ssh_bruteforce"> 
+                    <strong>SSH Bruteforce Test</strong>
+                    <span style="color: #666; font-size: 0.9rem; display: block; margin-left: 1.5rem;">Tests SSH with common credentials</span>
+                </label>
+                
+                <label style="display: block; margin: 0.5rem 0; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; cursor: pointer;">
+                    <input type="checkbox" value="ftp_anonymous"> 
+                    <strong>FTP Anonymous Access</strong>
+                    <span style="color: #666; font-size: 0.9rem; display: block; margin-left: 1.5rem;">Tests FTP configuration</span>
+                </label>
+            </div>
+            
+            <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                <button onclick="window.startAttackSimulation(this.parentElement.parentElement.parentElement)" class="btn btn-danger" style="flex: 1;">
+                    ⚔️ Start Attack Simulation
+                </button>
+                <button onclick="this.parentElement.parentElement.parentElement.remove()" class="btn btn-secondary" style="flex: 1;">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    `;
+    
+    dialog.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    `;
+    
+    document.body.appendChild(dialog);
+    console.log('✅ Attack simulation dialog displayed');
+}
+
+async function startAttackSimulation(dialogElement) {
+    console.log(`startAttackSimulation called with scanId: ${scanId}`);
+    
+    if (!scanId) {
+        alert('Error: No scan ID available');
+        console.error('Cannot start attack: scanId is null/undefined');
+        return;
+    }
+    
+    // Get selected attack types
+    const checkboxes = dialogElement.querySelectorAll('input[type="checkbox"]:checked');
+    const attackTypes = Array.from(checkboxes).map(cb => cb.value);
+    
+    console.log('Selected attack types:', attackTypes);
+    
+    if (attackTypes.length === 0) {
+        alert('Please select at least one attack type');
+        return;
+    }
+    
+    // Close dialog
+    dialogElement.remove();
+    
+    // Show progress
+    const container = document.getElementById('attack-simulation-container');
+    if (container) {
+        container.innerHTML = `
+            <div class="card" style="margin-bottom: 2rem;">
+                <div style="padding: 1.5rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 8px;">
+                    <h3 style="margin: 0 0 1rem 0; color: white;">⚔️ Attack Simulation in Progress</h3>
+                    <p style="margin: 0.5rem 0;">Running ${attackTypes.length} attack simulation(s)</p>
+                    <p style="margin: 0.5rem 0;">Scan ID: ${scanId}</p>
+                    <p style="margin: 0.5rem 0;">Attack types: ${attackTypes.join(', ')}</p>
+                    <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">⏱️ Checking for results...</p>
+                    <div class="spinner" style="margin-top: 1rem;"></div>
+                </div>
+            </div>
+        `;
+    }
+    
+    try {
+        console.log(`Sending attack simulation request to: ${API_URL}/scans/${scanId}/simulate-attacks`);
+        
+        const response = await fetch(`${API_URL}/scans/${scanId}/simulate-attacks`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ attack_types: attackTypes })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            console.log('✅ Attack simulation started:', data);
+            
+            if (container) {
+                container.innerHTML = `
+                    <div class="card" style="margin-bottom: 2rem;">
+                        <div style="padding: 1.5rem; background: #d4edda; border-left: 4px solid #28a745; border-radius: 4px;">
+                            <h3 style="margin: 0 0 0.5rem 0; color: #155724;">✅ Attack Simulation Running</h3>
+                            <p style="margin: 0.5rem 0; color: #155724;">${data.message || 'Attack simulation is running'}</p>
+                            <p style="margin: 0.5rem 0 0 0; color: #155724;">⏳ Loading results...</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // IMPROVED: Poll multiple times at shorter intervals
+            // Try immediately, then after 2s, 5s, 10s, 15s
+            pollAttackResults(0);
+            
+        } else {
+            throw new Error(data.error || 'Attack simulation request failed');
+        }
+        
+    } catch (error) {
+        console.error('❌ Attack simulation error:', error);
+        
+        if (container) {
+            container.innerHTML = `
+                <div class="card" style="margin-bottom: 2rem;">
+                    <div style="padding: 1.5rem; background: #f8d7da; border-left: 4px solid #dc3545; border-radius: 4px;">
+                        <h3 style="margin: 0 0 0.5rem 0; color: #721c24;">❌ Attack Simulation Error</h3>
+                        <p style="margin: 0; color: #721c24;">${error.message}</p>
+                    </div>
+                </div>
+            `;
+        }
+    }
+}
+
+// NEW: Improved polling function
+let pollAttempts = 0;
+const maxPollAttempts = 10;
+
+function pollAttackResults(delay) {
+    setTimeout(async () => {
+        pollAttempts++;
+        console.log(`Poll attempt ${pollAttempts}/${maxPollAttempts}`);
+        
+        try {
+            const response = await fetch(`${API_URL}/scans/${scanId}/attack-results`);
+            const data = await response.json();
+            
+            if (data.results && data.results.length > 0) {
+                console.log(`✅ Found ${data.results.length} attack results`);
+                displayAttackResults(data.results);
+                pollAttempts = 0; // Reset for next time
+            } else {
+                console.log('No results yet...');
+                
+                // Keep polling if we haven't exceeded max attempts
+                if (pollAttempts < maxPollAttempts) {
+                    // Exponential backoff: 2s, 2s, 3s, 5s, 5s, 5s...
+                    const nextDelay = pollAttempts < 3 ? 2000 : 5000;
+                    pollAttackResults(nextDelay);
+                } else {
+                    // Give up after max attempts
+                    console.warn('Max poll attempts reached');
+                    const container = document.getElementById('attack-simulation-container');
+                    if (container) {
+                        container.innerHTML = `
+                            <div class="card" style="margin-bottom: 2rem;">
+                                <div style="padding: 1.5rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+                                    <h3 style="margin: 0 0 0.5rem 0; color: #856404;">⚠️ Results Not Found</h3>
+                                    <p style="margin: 0; color: #856404;">Attack simulation may still be running. Refresh the page in a moment.</p>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    pollAttempts = 0;
+                }
+            }
+        } catch (error) {
+            console.error('Error polling results:', error);
+            
+            // Retry on error
+            if (pollAttempts < maxPollAttempts) {
+                pollAttackResults(3000);
+            }
+        }
+    }, delay);
+}
+
+// Keep the old function for backward compatibility
+async function loadAttackResults() {
+    console.log(`Loading attack results for scan ${scanId}`);
+    
+    try {
+        const response = await fetch(`${API_URL}/scans/${scanId}/attack-results`);
+        const data = await response.json();
+        
+        if (data.results && data.results.length > 0) {
+            console.log(`✅ Loaded ${data.results.length} attack results`);
+            displayAttackResults(data.results);
+        } else {
+            console.log('No attack results found yet');
+        }
+    } catch (error) {
+        console.error('❌ Error loading attack results:', error);
+    }
+}
+
+// async function loadAttackResults() {
+//     console.log(`Loading attack results for scan ${scanId}`);
+    
+//     try {
+//         const response = await fetch(`${API_URL}/scans/${scanId}/attack-results`);
+//         const data = await response.json();
+        
+//         if (data.results && data.results.length > 0) {
+//             console.log(`✅ Loaded ${data.results.length} attack results`);
+//             displayAttackResults(data.results);
+//         } else {
+//             console.log('No attack results found yet');
+//         }
+//     } catch (error) {
+//         console.error('❌ Error loading attack results:', error);
+//     }
+// }
+
+async function downloadAttackReport() {
+    console.log(`Generating attack report PDF for scan ${scanId}`);
+    
+    try {
+        const response = await fetch(`${API_URL}/scans/${scanId}/attack-report/pdf`, {
+            method: 'POST'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok && data.filename) {
+            console.log(`✅ Attack report generated: ${data.filename}`);
+            
+            // Download the report
+            const downloadUrl = `${API_URL}/reports/${data.filename}`;
+            window.location.href = downloadUrl;
+            
+            // Show success message
+            alert('✅ Attack report PDF generated successfully!');
+        } else {
+            throw new Error(data.error || 'Failed to generate report');
+        }
+    } catch (error) {
+        console.error(`❌ Error generating attack report:`, error);
+        alert(`Error generating attack report:\n\n${error.message}`);
+    }
+}
+
+// Make globally available
+window.downloadAttackReport = downloadAttackReport;
+
+
+function displayAttackResults(results) {
+    const container = document.getElementById('attack-results-container');
+    if (!container) {
+        console.error('Attack results container not found');
+        return;
+    }
+    
+    // Clear the "in progress" message
+    const progressContainer = document.getElementById('attack-simulation-container');
+    if (progressContainer) {
+        progressContainer.innerHTML = '';
+    }
+    
+    container.style.display = 'block';
+    
+    // Scroll to results
+    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    let html = `
+        <div style="display: flex; justify-content: space-between; align-items: center; margin: 2rem 0 1rem 0;">
+            <h3 style="margin: 0; color: #333;">📊 Attack Simulation Results (${results.length} tests)</h3>
+            <button onclick="downloadAttackReport()" class="btn btn-primary">
+                📥 Download PDF Report
+            </button>
+        </div>
+    `;
+    
+    // Calculate summary
+    let vulnerableCount = 0;
+    let validResults = [];
+    
+    // Pre-process results to handle JSON parsing
+    results.forEach(result => {
+        try {
+            // Try to parse the result
+            let resultData;
+            if (typeof result.result === 'string') {
+                resultData = JSON.parse(result.result);
+            } else {
+                resultData = result.result;
+            }
+            
+            validResults.push({
+                ...result,
+                parsedData: resultData
+            });
+            
+            if (result.vulnerable) {
+                vulnerableCount++;
+            }
+        } catch (e) {
+            console.error('⚠️ Error parsing result:', e, result);
+            // Add with raw data for debugging
+            validResults.push({
+                ...result,
+                parsedData: { 
+                    error: 'Failed to parse result',
+                    raw: result.result 
+                }
+            });
+        }
+    });
+    
+    const secureCount = validResults.length - vulnerableCount;
+    const securityScore = validResults.length > 0 ? Math.round((secureCount / validResults.length) * 100) : 0;
+    
+    // Add summary card
+    html += `
+        <div class="card" style="margin-bottom: 2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <div style="padding: 1.5rem;">
+                <h3 style="margin: 0 0 1rem 0; color: white;">Security Assessment Summary</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
+                    <div style="text-align: center;">
+                        <div style="font-size: 2rem; font-weight: bold;">${validResults.length}</div>
+                        <div style="opacity: 0.9;">Total Tests</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 2rem; font-weight: bold; color: #ffc107;">${vulnerableCount}</div>
+                        <div style="opacity: 0.9;">Vulnerable</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 2rem; font-weight: bold; color: #4caf50;">${secureCount}</div>
+                        <div style="opacity: 0.9;">Secure</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 2rem; font-weight: bold;">${securityScore}%</div>
+                        <div style="opacity: 0.9;">Security Score</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Display each result
+    validResults.forEach((result, index) => {
+        const resultData = result.parsedData;
+        const borderColor = result.vulnerable ? '#dc3545' : '#28a745';
+        const bgColor = result.vulnerable ? '#f8d7da' : '#d4edda';
+        const textColor = result.vulnerable ? '#721c24' : '#155724';
+        const icon = result.vulnerable ? '❌' : '✅';
+        
+        html += `
+            <div class="card" style="margin-bottom: 1.5rem; border-left: 4px solid ${borderColor};">
+                <div style="padding: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                        <h4 style="margin: 0; color: #333;">${icon} ${result.attack_type}</h4>
+                        ${result.severity ? `<span class="severity-badge ${result.severity.toLowerCase()}">${result.severity}</span>` : ''}
+                    </div>
+                    
+                    <div style="background: ${bgColor}; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;">
+                        <p style="margin: 0; color: ${textColor}; font-weight: 600;">
+                            ${result.vulnerable ? '❌ VULNERABLE - Security Issue Detected' : '✅ SECURE - No Issues Found'}
+                        </p>
+                    </div>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <p style="margin: 0.5rem 0;"><strong>🎯 Target:</strong> ${resultData.target || 'N/A'}</p>
+                        <p style="margin: 0.5rem 0;"><strong>🕐 Timestamp:</strong> ${new Date(result.timestamp).toLocaleString()}</p>
+                        ${resultData.verdict ? `<p style="margin: 0.5rem 0;"><strong>📋 Verdict:</strong> ${resultData.verdict}</p>` : ''}
+                        ${resultData.scan_duration ? `<p style="margin: 0.5rem 0;"><strong>⏱️ Duration:</strong> ${resultData.scan_duration}</p>` : ''}
+                        ${resultData.ports_scanned ? `<p style="margin: 0.5rem 0;"><strong>🔌 Ports Scanned:</strong> ${resultData.ports_scanned}</p>` : ''}
+                        ${resultData.scan_rate ? `<p style="margin: 0.5rem 0;"><strong>⚡ Scan Rate:</strong> ${resultData.scan_rate}</p>` : ''}
+                    </div>
+                    
+                    ${resultData.recommendation ? `
+                        <div style="background: #e7f3ff; padding: 0.75rem; border-left: 3px solid #2196f3; margin-top: 1rem; border-radius: 4px;">
+                            <strong>💡 Recommendation:</strong>
+                            <p style="margin: 0.5rem 0 0 0;">${resultData.recommendation}</p>
+                        </div>
+                    ` : ''}
+                    
+                    ${resultData.error ? `
+                        <div style="background: #fff3cd; padding: 0.75rem; border-left: 3px solid #ffc107; margin-top: 1rem; border-radius: 4px;">
+                            <strong>⚠️ Error:</strong>
+                            <p style="margin: 0.5rem 0 0 0; color: #856404;">${resultData.error}</p>
+                        </div>
+                    ` : ''}
+                    
+                    <details style="margin-top: 1rem;">
+                        <summary style="cursor: pointer; color: #667eea; font-weight: 600; padding: 0.5rem 0;">
+                            📋 View Full Technical Details
+                        </summary>
+                        <pre style="background: #f8f9fa; padding: 1rem; margin-top: 0.5rem; overflow-x: auto; border-radius: 4px; font-size: 0.85rem; border: 1px solid #dee2e6;">${JSON.stringify(resultData, null, 2)}</pre>
+                    </details>
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+    console.log('✅ Attack results displayed successfully');
+}
+
+// Set up event listener when DOM loads
+document.addEventListener('DOMContentLoaded', () => {
+    const simulateBtn = document.getElementById('simulate-attacks-btn');
+    if (simulateBtn) {
+        console.log('✅ Attack simulation button found, adding listener');
+        simulateBtn.addEventListener('click', showAttackSimulationDialog);
+    } else {
+        console.warn('⚠️ Attack simulation button NOT found in DOM');
+    }
+});
+
+// Make functions globally available
+window.showAttackSimulationDialog = showAttackSimulationDialog;
+window.startAttackSimulation = startAttackSimulation;
+
+async function testLoadResults() {
+    console.log('TEST: Manually loading results...');
+    
+    const response = await fetch(`${API_URL}/scans/${scanId}/attack-results`);
+    const data = await response.json();
+    
+    console.log('TEST: Response data:', data);
+    console.log('TEST: Results count:', data.results?.length || 0);
+    
+    if (data.results && data.results.length > 0) {
+        alert(`Found ${data.results.length} results!`);
+        displayAttackResults(data.results);
+    } else {
+        alert('No results found in database');
+    }
+}
+
+window.testLoadResults = testLoadResults;

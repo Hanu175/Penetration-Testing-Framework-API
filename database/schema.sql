@@ -1,4 +1,4 @@
--- Includes: users, projects, scans, targets, ports, vulnerabilities,
+-- includes: users, projects, scans, targets, ports, vulnerabilities,
 --           exploits, sessions, reports, scan_logs, settings tables
 -- Penetration Testing Framework Database Schema
 

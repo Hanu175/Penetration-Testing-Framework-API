@@ -153,6 +153,26 @@
                 </div>
             </div>
 
+            <!-- Attack Simulation Section -->
+            <div class="section-header" style="margin-top: 2rem;">
+                <h2>Security Defense Testing</h2>
+                <button id="simulate-attacks-btn" class="btn btn-danger">
+                    ⚔️ Simulate Attacks
+                </button>
+                <button onclick="testLoadResults()" class="btn btn-secondary" style="margin-left: 0.5rem;">
+                    🔍 Test Load Results
+                </button>
+            </div>
+
+            <div id="attack-simulation-container">
+                <!-- Attack simulation status will be shown here -->
+            </div>
+
+            <div id="attack-results-container" style="display: none;">
+                <!-- Attack results will be displayed here -->
+            </div>
+
+
             <!-- Back Button -->
             <div style="margin-top: 2rem; text-align: center;">
                 <a href="index.html" class="btn btn-secondary">Back to Dashboard</a>

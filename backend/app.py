@@ -11,6 +11,7 @@ import sys
 from pathlib import Path
 from services.reporter_service import reporter_service
 from pathlib import Path
+from services.attack_service import attack_simulator
 
 # Add current directory to path
 sys.path.insert(0, str(Path(__file__).parent))
@@ -402,6 +403,105 @@ def get_ports(scan_id):
     except Exception as e:
         logger.error(f"Get ports error: {str(e)}")
         return jsonify({'error': str(e)}), 500
+
+# ==================== ATTACK SIMULATION ENDPOINTS ====================
+
+@app.route('/api/v1/scans/<int:scan_id>/simulate-attacks', methods=['POST'])
+def simulate_attacks(scan_id):
+    """
+    Simulate attacks on scanned target
+    
+    POST body:
+    {
+        "attack_types": ["sql_injection", "xss", "ssh_bruteforce", "port_scan_detection"]
+    }
+    """
+    try:
+        data = request.json
+        attack_types = data.get('attack_types', [])
+        
+        # Get scan details
+        from utils.database import get_scan_with_details
+        scan = get_scan_with_details(scan_id)
+        if not scan:
+            return jsonify({'error': 'Scan not found'}), 404
+        
+        target = scan['target']
+        
+        # Run attack simulation in background
+        import threading
+        
+        def run_attacks():
+            try:
+                attack_simulator.run_full_attack_simulation(
+                    scan_id, target, attack_types
+                )
+            except Exception as e:
+                logger.error(f"Attack simulation error: {str(e)}")
+        
+        thread = threading.Thread(target=run_attacks)
+        thread.daemon = True
+        thread.start()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Attack simulation started on {target}',
+            'attack_types': attack_types
+        }), 202
+        
+    except Exception as e:
+        logger.error(f"Simulate attacks error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/v1/scans/<int:scan_id>/attack-results', methods=['GET'])
+def get_attack_results(scan_id):
+    """Get attack simulation results for a scan"""
+    try:
+        query = """
+        SELECT * FROM attack_simulations
+        WHERE scan_id = ?
+        ORDER BY timestamp DESC
+        """
+        
+        results = db.execute_query(query, (scan_id,))
+        
+        return jsonify({
+            'scan_id': scan_id,
+            'results': results,
+            'count': len(results)
+        })
+        
+    except Exception as e:
+        logger.error(f"Get attack results error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/v1/scans/<int:scan_id>/attack-report/pdf', methods=['POST'])
+def generate_attack_pdf_report(scan_id):
+    """Generate PDF report for attack simulation results"""
+    try:
+        from services.attack_service import attack_simulator
+        
+        # Check if attack results exist
+        query = "SELECT COUNT(*) as count FROM attack_simulations WHERE scan_id = ?"
+        result = db.execute_query(query, (scan_id,))
+        
+        if not result or result[0]['count'] == 0:
+            return jsonify({'error': 'No attack results found for this scan'}), 404
+        
+        # Generate PDF
+        filepath = attack_simulator.generate_attack_report_pdf(scan_id)
+        filename = filepath.split('/')[-1].split('\\')[-1]
+        
+        return jsonify({
+            'success': True,
+            'filename': filename,
+            'message': 'Attack report PDF generated successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f"Generate attack PDF error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 
 if __name__ == '__main__':
     logger.info("=" * 60)
