@@ -1087,23 +1087,34 @@ class AttackSimulator:
                         status_color = colors.HexColor('#28a745')
                         status_text = '✅ SECURE'
                     
-                    # Attack details
+                    # Attack details - use Paragraph for long text
                     attack_details = [
-                        ['Status:', status_text],
-                        ['Target:', result_data.get('target', 'N/A')],
-                        ['Timestamp:', result_data.get('timestamp', 'N/A')],
+                        ['Status:', Paragraph(status_text, styles['Normal'])],
+                        ['Target:', Paragraph(str(result_data.get('target', 'N/A')), styles['Normal'])],
+                        ['Timestamp:', Paragraph(str(result_data.get('timestamp', 'N/A')), styles['Normal'])],
                     ]
-                    
+
                     if result.get('severity'):
-                        attack_details.append(['Severity:', result['severity']])
-                    
+                        attack_details.append([
+                            'Severity:', 
+                            Paragraph(str(result['severity']), styles['Normal'])
+                        ])
+
                     if result_data.get('verdict'):
-                        attack_details.append(['Verdict:', result_data['verdict']])
-                    
+                        attack_details.append([
+                            'Verdict:', 
+                            Paragraph(str(result_data['verdict']), styles['Normal'])
+                        ])
+
                     if result_data.get('recommendation'):
-                        attack_details.append(['Recommendation:', result_data['recommendation']])
-                    
+                        # Wrap long recommendations
+                        attack_details.append([
+                            'Recommendation:', 
+                            Paragraph(str(result_data['recommendation']), styles['Normal'])
+                        ])
+
                     details_table = Table(attack_details, colWidths=[1.5*inch, 4.5*inch])
+                    
                     details_table.setStyle(TableStyle([
                         ('BACKGROUND', (0, 0), (0, -1), colors.HexColor('#f0f0f0')),
                         ('FONTNAME', (0, 0), (0, -1), 'Helvetica-Bold'),

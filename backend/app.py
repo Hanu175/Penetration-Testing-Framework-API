@@ -503,6 +503,61 @@ def generate_attack_pdf_report(scan_id):
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/v1/scans/<int:scan_id>/attack-results', methods=['DELETE'])
+def delete_attack_results(scan_id):
+    """Delete all attack simulation results for a scan"""
+    try:
+        # Check if attack results exist
+        query = "SELECT COUNT(*) as count FROM attack_simulations WHERE scan_id = ?"
+        result = db.execute_query(query, (scan_id,))
+        
+        if not result or result[0]['count'] == 0:
+            return jsonify({'error': 'No attack results found for this scan'}), 404
+        
+        count = result[0]['count']
+        
+        # Delete attack results
+        delete_query = "DELETE FROM attack_simulations WHERE scan_id = ?"
+        db.execute_update(delete_query, (scan_id,))
+        
+        logger.info(f"Deleted {count} attack results for scan {scan_id}")
+        
+        return jsonify({
+            'success': True,
+            'message': f'Deleted {count} attack simulation results',
+            'deleted_count': count
+        })
+        
+    except Exception as e:
+        logger.error(f"Delete attack results error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/v1/attack-results/<int:result_id>', methods=['DELETE'])
+def delete_single_attack_result(result_id):
+    """Delete a single attack simulation result"""
+    try:
+        # Check if result exists
+        query = "SELECT * FROM attack_simulations WHERE id = ?"
+        result = db.execute_query(query, (result_id,))
+        
+        if not result:
+            return jsonify({'error': 'Attack result not found'}), 404
+        
+        # Delete the result
+        delete_query = "DELETE FROM attack_simulations WHERE id = ?"
+        db.execute_update(delete_query, (result_id,))
+        
+        logger.info(f"Deleted attack result {result_id}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Attack result deleted successfully'
+        })
+        
+    except Exception as e:
+        logger.error(f"Delete single attack result error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     logger.info("=" * 60)
     logger.info("Starting Penetration Testing Framework API")

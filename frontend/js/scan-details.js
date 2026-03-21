@@ -1054,16 +1054,19 @@ function displayAttackResults(results) {
     }
     
     container.style.display = 'block';
-    
-    // Scroll to results
     container.scrollIntoView({ behavior: 'smooth', block: 'start' });
     
     let html = `
         <div style="display: flex; justify-content: space-between; align-items: center; margin: 2rem 0 1rem 0;">
             <h3 style="margin: 0; color: #333;">📊 Attack Simulation Results (${results.length} tests)</h3>
-            <button onclick="downloadAttackReport()" class="btn btn-primary">
-                📥 Download PDF Report
-            </button>
+            <div style="display: flex; gap: 0.5rem;">
+                <button onclick="downloadAttackReport()" class="btn btn-primary">
+                    📥 Download PDF Report
+                </button>
+                <button onclick="deleteAllAttackResults()" class="btn btn-danger">
+                    🗑️ Delete All Results
+                </button>
+            </div>
         </div>
     `;
     
@@ -1074,7 +1077,6 @@ function displayAttackResults(results) {
     // Pre-process results to handle JSON parsing
     results.forEach(result => {
         try {
-            // Try to parse the result
             let resultData;
             if (typeof result.result === 'string') {
                 resultData = JSON.parse(result.result);
@@ -1092,7 +1094,6 @@ function displayAttackResults(results) {
             }
         } catch (e) {
             console.error('⚠️ Error parsing result:', e, result);
-            // Add with raw data for debugging
             validResults.push({
                 ...result,
                 parsedData: { 
@@ -1146,7 +1147,12 @@ function displayAttackResults(results) {
                 <div style="padding: 1.5rem;">
                     <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
                         <h4 style="margin: 0; color: #333;">${icon} ${result.attack_type}</h4>
-                        ${result.severity ? `<span class="severity-badge ${result.severity.toLowerCase()}">${result.severity}</span>` : ''}
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            ${result.severity ? `<span class="severity-badge ${result.severity.toLowerCase()}">${result.severity}</span>` : ''}
+                            <button onclick="deleteAttackResult(${result.id})" class="btn btn-danger btn-small" title="Delete this result">
+                                Delete
+                            </button>
+                        </div>
                     </div>
                     
                     <div style="background: ${bgColor}; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;">
@@ -1192,6 +1198,113 @@ function displayAttackResults(results) {
     container.innerHTML = html;
     console.log('✅ Attack results displayed successfully');
 }
+
+// Delete all attack results for current scan
+async function deleteAllAttackResults() {
+    // Confirmation dialog
+    const confirmed = confirm(
+        '⚠️ Delete All Attack Results?\n\n' +
+        'This will permanently delete ALL attack simulation results for this scan.\n\n' +
+        'This action cannot be undone!\n\n' +
+        'Are you sure you want to continue?'
+    );
+    
+    if (!confirmed) {
+        return;
+    }
+    
+    try {
+        console.log(`Deleting all attack results for scan ${scanId}`);
+        
+        const response = await fetch(`${API_URL}/scans/${scanId}/attack-results`, {
+            method: 'DELETE'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            console.log(`✅ Deleted ${data.deleted_count} attack results`);
+            
+            // Hide results container
+            const container = document.getElementById('attack-results-container');
+            if (container) {
+                container.style.display = 'none';
+                container.innerHTML = '';
+            }
+            
+            // Show success message
+            const simContainer = document.getElementById('attack-simulation-container');
+            if (simContainer) {
+                simContainer.innerHTML = `
+                    <div class="card" style="margin-bottom: 2rem;">
+                        <div style="padding: 1.5rem; background: #d4edda; border-left: 4px solid #28a745; border-radius: 4px;">
+                            <h3 style="margin: 0 0 0.5rem 0; color: #155724;">✅ Results Deleted</h3>
+                            <p style="margin: 0; color: #155724;">
+                                Successfully deleted ${data.deleted_count} attack simulation result(s).
+                            </p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Show alert
+            alert(`✅ Successfully deleted ${data.deleted_count} attack result(s)`);
+            
+        } else {
+            throw new Error(data.error || 'Failed to delete attack results');
+        }
+        
+    } catch (error) {
+        console.error('❌ Error deleting attack results:', error);
+        alert(`❌ Error deleting attack results:\n\n${error.message}`);
+    }
+}
+
+// Delete single attack result
+async function deleteAttackResult(resultId) {
+    // Confirmation dialog
+    const confirmed = confirm(
+        '⚠️ Delete This Attack Result?\n\n' +
+        'This will permanently delete this attack simulation result.\n\n' +
+        'Are you sure?'
+    );
+    
+    if (!confirmed) {
+        return;
+    }
+    
+    try {
+        console.log(`Deleting attack result ${resultId}`);
+        
+        const response = await fetch(`${API_URL}/attack-results/${resultId}`, {
+            method: 'DELETE'
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            console.log(`✅ Deleted attack result ${resultId}`);
+            
+            // Reload attack results to refresh the display
+            await loadAttackResults();
+            
+            // Show success message
+            alert('✅ Attack result deleted successfully');
+            
+        } else {
+            throw new Error(data.error || 'Failed to delete attack result');
+        }
+        
+    } catch (error) {
+        console.error('❌ Error deleting attack result:', error);
+        alert(`❌ Error deleting attack result:\n\n${error.message}`);
+    }
+}
+
+// Make functions globally available
+window.deleteAllAttackResults = deleteAllAttackResults;
+window.deleteAttackResult = deleteAttackResult;
+
 
 // Set up event listener when DOM loads
 document.addEventListener('DOMContentLoaded', () => {
