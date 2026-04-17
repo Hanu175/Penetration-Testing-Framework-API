@@ -1339,3 +1339,383 @@ async function testLoadResults() {
 }
 
 window.testLoadResults = testLoadResults;
+
+// ==================== HASHCAT FUNCTIONS ====================
+
+function showHashcatDialog() {
+    console.log(`showHashcatDialog called with scanId: ${scanId}`);
+    
+    if (!scanId) {
+        alert('Error: No scan ID available for Hashcat');
+        return;
+    }
+    
+    const dialog = document.createElement('div');
+    dialog.className = 'modal-overlay';
+    dialog.innerHTML = `
+        <div class="modal-content" style="max-width: 700px;">
+            <h2 style="color: #dc3545; margin-bottom: 1rem;">🔓 Password Hash Cracking</h2>
+            
+            <div style="background: #fff3cd; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                <strong>⚠️ LEGAL WARNING</strong>
+                <p style="margin: 0.5rem 0;">This will attempt to crack password hashes using GPU acceleration!</p>
+                <p style="margin: 0.5rem 0 0 0; color: #856404;">
+                    <strong>Only crack hashes from authorized security assessments!</strong>
+                </p>
+            </div>
+            
+            <h3 style="margin-top: 1.5rem;">Password Hashes:</h3>
+            <p style="color: #666; font-size: 0.9rem; margin: 0.5rem 0;">Enter one hash per line</p>
+            <textarea id="hashcat-hashes" class="form-input" rows="5" 
+                      placeholder="5f4dcc3b5aa765d61d8327deb882cf99&#10;e10adc3949ba59abbe56e057f20f883e&#10;098f6bcd4621d373cade4e832627b4f6"
+                      style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 1rem; font-family: monospace; font-size: 0.9rem;"></textarea>
+            
+            <h3 style="margin-top: 1rem;">Hash Type:</h3>
+            <select id="hashcat-type" class="form-input" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 1rem;">
+                <option value="0">MD5</option>
+                <option value="100">SHA1</option>
+                <option value="1400">SHA256</option>
+                <option value="1700">SHA512</option>
+                <option value="1000">NTLM (Windows)</option>
+                <option value="3200">bcrypt</option>
+                <option value="500">MD5 Crypt (Unix)</option>
+                <option value="1800">sha512crypt (Unix)</option>
+            </select>
+            
+            <h3 style="margin-top: 1rem;">Attack Mode:</h3>
+            <select id="hashcat-attack" class="form-input" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 1rem;">
+                <option value="0">Dictionary Attack (Fast, common passwords)</option>
+                <option value="3">Bruteforce (Slow, tries all combinations)</option>
+            </select>
+            
+            <div style="background: #e7f3ff; padding: 1rem; border-radius: 4px; margin: 1rem 0;">
+                <strong>ℹ️ Note:</strong>
+                <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem;">
+                    Dictionary attack uses a wordlist of common passwords (~100 passwords).
+                    Bruteforce is much slower but tries all possible combinations.
+                </p>
+            </div>
+            
+            <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                <button onclick="window.startHashcatCrack(this.parentElement.parentElement.parentElement)" class="btn btn-danger" style="flex: 1;">
+                    💥 Start Cracking
+                </button>
+                <button onclick="this.parentElement.parentElement.parentElement.remove()" class="btn btn-secondary" style="flex: 1;">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    `;
+    
+    dialog.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        overflow-y: auto;
+    `;
+    
+    document.body.appendChild(dialog);
+    console.log('✅ Hashcat dialog displayed');
+}
+
+async function startHashcatCrack(dialogElement) {
+    console.log(`startHashcatCrack called with scanId: ${scanId}`);
+    
+    if (!scanId) {
+        alert('Error: No scan ID available');
+        return;
+    }
+    
+    // Get input values
+    const hashesText = document.getElementById('hashcat-hashes').value.trim();
+    const hashType = parseInt(document.getElementById('hashcat-type').value);
+    const attackMode = parseInt(document.getElementById('hashcat-attack').value);
+    
+    if (!hashesText) {
+        alert('Please enter at least one password hash');
+        return;
+    }
+    
+    // Parse hashes (one per line)
+    const hashes = hashesText.split('\n')
+        .map(h => h.trim())
+        .filter(h => h.length > 0);
+    
+    if (hashes.length === 0) {
+        alert('Please enter valid password hashes');
+        return;
+    }
+    
+    // Close dialog
+    dialogElement.remove();
+    
+    // Show progress
+    const container = document.getElementById('hashcat-container');
+    if (container) {
+        container.innerHTML = `
+            <div class="card" style="margin-bottom: 2rem;">
+                <div style="padding: 1.5rem; background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); color: white; border-radius: 8px;">
+                    <h3 style="margin: 0 0 1rem 0; color: white;">🔓 Hashcat Cracking in Progress</h3>
+                    <p style="margin: 0.5rem 0;">Hashes: ${hashes.length}</p>
+                    <p style="margin: 0.5rem 0;">Hash Type: ${getHashTypeName(hashType)}</p>
+                    <p style="margin: 0.5rem 0;">Attack Mode: ${attackMode === 0 ? 'Dictionary' : 'Bruteforce'}</p>
+                    <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">⏱️ This may take 1-5 minutes...</p>
+                    <div class="spinner" style="margin-top: 1rem;"></div>
+                </div>
+            </div>
+        `;
+        container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    
+    try {
+        const response = await fetch(`${API_URL}/scans/${scanId}/hashcat-crack`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                hashes: hashes,
+                hash_type: hashType,
+                attack_mode: attackMode
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            console.log('✅ Hashcat cracking started:', data);
+            
+            if (container) {
+                container.innerHTML = `
+                    <div class="card" style="margin-bottom: 2rem;">
+                        <div style="padding: 1.5rem; background: #d4edda; border-left: 4px solid #28a745; border-radius: 4px;">
+                            <h3 style="margin: 0 0 0.5rem 0; color: #155724;">✅ Hashcat Cracking Started</h3>
+                            <p style="margin: 0.5rem 0; color: #155724;">${data.message || 'Cracking job is running in background'}</p>
+                            <p style="margin: 0.5rem 0 0 0; color: #155724;">⏳ Checking for results every 10 seconds...</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Poll for results
+            pollHashcatResults();
+            
+        } else {
+            throw new Error(data.error || 'Hashcat request failed');
+        }
+        
+    } catch (error) {
+        console.error('❌ Hashcat error:', error);
+        
+        if (container) {
+            container.innerHTML = `
+                <div class="card" style="margin-bottom: 2rem;">
+                    <div style="padding: 1.5rem; background: #f8d7da; border-left: 4px solid #dc3545; border-radius: 4px;">
+                        <h3 style="margin: 0 0 0.5rem 0; color: #721c24;">❌ Hashcat Error</h3>
+                        <p style="margin: 0; color: #721c24;">${error.message}</p>
+                    </div>
+                </div>
+            `;
+        }
+    }
+}
+
+function getHashTypeName(type) {
+    const types = {
+        0: 'MD5',
+        100: 'SHA1',
+        1400: 'SHA256',
+        1700: 'SHA512',
+        1000: 'NTLM',
+        3200: 'bcrypt',
+        500: 'MD5 Crypt',
+        1800: 'sha512crypt'
+    };
+    return types[type] || `Type ${type}`;
+}
+
+let hashcatPollAttempts = 0;
+const maxHashcatPollAttempts = 30; // 5 minutes
+
+function pollHashcatResults() {
+    setTimeout(async () => {
+        hashcatPollAttempts++;
+        console.log(`Hashcat poll attempt ${hashcatPollAttempts}/${maxHashcatPollAttempts}`);
+        
+        try {
+            const response = await fetch(`${API_URL}/scans/${scanId}/hashcat-results`);
+            const data = await response.json();
+            
+            if (data.results && data.results.length > 0) {
+                console.log(`✅ Found ${data.results.length} Hashcat results`);
+                displayHashcatResults(data.results);
+                hashcatPollAttempts = 0;
+            } else {
+                if (hashcatPollAttempts < maxHashcatPollAttempts) {
+                    pollHashcatResults();
+                } else {
+                    const container = document.getElementById('hashcat-container');
+                    if (container) {
+                        container.innerHTML = `
+                            <div class="card" style="margin-bottom: 2rem;">
+                                <div style="padding: 1.5rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+                                    <h3 style="margin: 0 0 0.5rem 0; color: #856404;">⚠️ Cracking Still Running</h3>
+                                    <p style="margin: 0; color: #856404;">Hashcat is taking longer than expected. Refresh the page in a few minutes.</p>
+                                </div>
+                            </div>
+                        `;
+                    }
+                    hashcatPollAttempts = 0;
+                }
+            }
+        } catch (error) {
+            console.error('Error polling Hashcat results:', error);
+            if (hashcatPollAttempts < maxHashcatPollAttempts) {
+                pollHashcatResults();
+            }
+        }
+    }, 10000); // Poll every 10 seconds
+}
+
+function displayHashcatResults(results) {
+    const container = document.getElementById('hashcat-results-container');
+    if (!container) return;
+    
+    // Clear progress message
+    const progressContainer = document.getElementById('hashcat-container');
+    if (progressContainer) {
+        progressContainer.innerHTML = '';
+    }
+    
+    container.style.display = 'block';
+    container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    
+    let html = `
+        <h3 style="margin: 2rem 0 1rem 0; color: #333;">🔓 Hashcat Cracking Results</h3>
+    `;
+    
+    results.forEach((result, index) => {
+        const success = result.cracked_count > 0;
+        const borderColor = success ? '#28a745' : '#6c757d';
+        const bgColor = success ? '#d4edda' : '#e9ecef';
+        const textColor = success ? '#155724' : '#495057';
+        
+        // Parse cracked hashes
+        let crackedHashes = [];
+        try {
+            crackedHashes = JSON.parse(result.cracked_hashes || '[]');
+        } catch (e) {
+            console.error('Error parsing cracked hashes:', e);
+        }
+        
+        html += `
+            <div class="card" style="margin-bottom: 1.5rem; border-left: 4px solid ${borderColor};">
+                <div style="padding: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                        <h4 style="margin: 0; color: #333;">Password Cracking Job #${index + 1}</h4>
+                    </div>
+                    
+                    <div style="background: ${bgColor}; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;">
+                        <p style="margin: 0; color: ${textColor}; font-weight: 600;">
+                            ${success ? `✅ Cracked ${result.cracked_count} of ${result.hash_count} passwords!` : '❌ No passwords cracked'}
+                        </p>
+                    </div>
+                    
+                    <div style="margin-bottom: 1rem;">
+                        <p style="margin: 0.5rem 0;"><strong>📊 Status:</strong> ${result.status}</p>
+                        <p style="margin: 0.5rem 0;"><strong>🔐 Hash Type:</strong> ${getHashTypeName(result.hash_type)}</p>
+                        <p style="margin: 0.5rem 0;"><strong>⚡ Attack Mode:</strong> ${result.attack_mode === 0 ? 'Dictionary' : 'Bruteforce'}</p>
+                        <p style="margin: 0.5rem 0;"><strong>📈 Total Hashes:</strong> ${result.hash_count}</p>
+                        <p style="margin: 0.5rem 0;"><strong>✅ Cracked:</strong> ${result.cracked_count}</p>
+                        ${result.message ? `<p style="margin: 0.5rem 0;"><strong>💬 Message:</strong> ${result.message}</p>` : ''}
+                        <p style="margin: 0.5rem 0;"><strong>🕐 Started:</strong> ${new Date(result.started_at).toLocaleString()}</p>
+                        ${result.completed_at ? `<p style="margin: 0.5rem 0;"><strong>✅ Completed:</strong> ${new Date(result.completed_at).toLocaleString()}</p>` : ''}
+                    </div>
+                    
+                    ${crackedHashes.length > 0 ? `
+                        <div style="background: #d4edda; padding: 1rem; border-left: 3px solid #28a745; margin: 1rem 0; border-radius: 4px;">
+                            <strong>🔓 Cracked Passwords:</strong>
+                            ${crackedHashes.map(crack => `
+                                <div style="margin: 0.75rem 0; padding: 0.75rem; background: white; border-radius: 4px; font-family: monospace; font-size: 0.9rem;">
+                                    <p style="margin: 0.25rem 0; word-break: break-all;"><strong>Hash:</strong> ${crack.hash}</p>
+                                    <p style="margin: 0.25rem 0; color: #28a745; font-weight: bold;"><strong>Password:</strong> ${crack.password}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    
+                    ${result.error ? `
+                        <div style="background: #f8d7da; padding: 0.75rem; border-left: 3px solid #dc3545; margin-top: 1rem; border-radius: 4px;">
+                            <strong>⚠️ Error:</strong>
+                            <p style="margin: 0.5rem 0 0 0; color: #721c24;">${result.error}</p>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    });
+    
+    container.innerHTML = html;
+}
+
+// ==================== EVENT LISTENERS ====================
+
+document.addEventListener('DOMContentLoaded', () => {
+    // SQLMap button
+    const sqlmapBtn = document.getElementById('sqlmap-test-btn');
+    if (sqlmapBtn) {
+        console.log('✅ SQLMap button found');
+        sqlmapBtn.addEventListener('click', showSQLMapDialog);
+    }
+    
+    // Hashcat button
+    const hashcatBtn = document.getElementById('hashcat-crack-btn');
+    if (hashcatBtn) {
+        console.log('✅ Hashcat button found');
+        hashcatBtn.addEventListener('click', showHashcatDialog);
+    }
+    
+    // Load existing results when page loads
+    setTimeout(() => {
+        loadSQLMapResults();
+        loadHashcatResults();
+    }, 2000);
+});
+
+async function loadSQLMapResults() {
+    try {
+        const response = await fetch(`${API_URL}/scans/${scanId}/sqlmap-results`);
+        const data = await response.json();
+        
+        if (data.results && data.results.length > 0) {
+            displaySQLMapResults(data.results);
+        }
+    } catch (error) {
+        console.error('Error loading SQLMap results:', error);
+    }
+}
+
+async function loadHashcatResults() {
+    try {
+        const response = await fetch(`${API_URL}/scans/${scanId}/hashcat-results`);
+        const data = await response.json();
+        
+        if (data.results && data.results.length > 0) {
+            displayHashcatResults(data.results);
+        }
+    } catch (error) {
+        console.error('Error loading Hashcat results:', error);
+    }
+}
+
+// Make functions globally available
+window.showSQLMapDialog = showSQLMapDialog;
+window.startSQLMapTest = startSQLMapTest;
+window.deleteSQLMapResult = deleteSQLMapResult;
+window.showHashcatDialog = showHashcatDialog;
+window.startHashcatCrack = startHashcatCrack;

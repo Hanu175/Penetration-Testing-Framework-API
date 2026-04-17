@@ -65,7 +65,7 @@ class Config:
     LOG_FILE = LOGS_DIR / 'pentest_framework.log'
     
     # Security
-    AUTHORIZED_NETWORKS = os.getenv('AUTHORIZED_NETWORKS', '192.168.0.0/16,10.0.0.0/8,127.0.0.1').split(',')
+    AUTHORIZED_NETWORKS = os.getenv('AUTHORIZED_NETWORKS', '0.0.0.0/0,192.168.0.0/16,10.0.0.0/8,127.0.0.1').split(',')
     
     # Pagination
     DEFAULT_PAGE_SIZE = 20

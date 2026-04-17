@@ -172,6 +172,35 @@
                 <!-- Attack results will be displayed here -->
             </div>
 
+            <!-- ==================== ATTACK SIMULATION SECTION (existing) ==================== -->
+            <!-- Keep your existing attack simulation section here -->
+
+            <!-- ==================== HASHCAT SECTION ==================== -->
+            <div class="section-header" style="margin-top: 3rem;">
+                <h2>🔓 Password Cracking (Hashcat)</h2>
+                <button id="hashcat-crack-btn" class="btn btn-danger">
+                    💥 Crack Password Hashes
+                </button>
+            </div>
+
+            <div class="card" style="margin-bottom: 2rem;">
+                <div style="padding: 1rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
+                    <strong>⚠️ About Password Cracking</strong>
+                    <p style="margin: 0.5rem 0 0 0; color: #856404;">
+                        Hashcat uses GPU acceleration to crack password hashes. This feature tests the strength 
+                        of password hashes obtained during penetration testing. Common hash types include MD5, SHA1, 
+                        SHA256, and NTLM. <strong>Only crack hashes from authorized security assessments!</strong>
+                    </p>
+                </div>
+            </div>
+
+            <div id="hashcat-container">
+                <!-- Hashcat cracking status and results will be shown here -->
+            </div>
+
+            <div id="hashcat-results-container" style="display: none;">
+                <!-- Hashcat results will be displayed here -->
+            </div>
 
             <!-- Back Button -->
             <div style="margin-top: 2rem; text-align: center;">

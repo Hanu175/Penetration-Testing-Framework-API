@@ -203,42 +203,62 @@ class ScannerService:
                 except socket.gaierror:
                     return False, f"Invalid target: {target}"
     
+    
     def is_target_authorized(self, target: str) -> bool:
-        """
-        Check if target is in authorized networks
-        
-        Args:
-            target: Target IP/network
-        
-        Returns:
-            True if authorized, False otherwise
-        """
         import ipaddress
+        import socket
         
         try:
-            target_ip = ipaddress.ip_address(target)
-            
+            # ✅ Convert domain → IP FIRST
+            resolved_ip = socket.gethostbyname(target)
+            target_ip = ipaddress.ip_address(resolved_ip)
+
             for authorized_network in config.AUTHORIZED_NETWORKS:
                 network = ipaddress.ip_network(authorized_network.strip(), strict=False)
                 if target_ip in network:
                     return True
-            
+
             return False
+
+        except Exception as e:
+            print(f"Authorization error: {e}")
+            return False
+    # def is_target_authorized(self, target: str) -> bool:
+    #     """
+    #     Check if target is in authorized networks
+        
+    #     Args:
+    #         target: Target IP/network
+        
+    #     Returns:
+    #         True if authorized, False otherwise
+    #     """
+    #     import ipaddress
+        
+    #     try:
+    #         target_ip = ipaddress.ip_address(target)
             
-        except ValueError:
-            # If target is a network
-            try:
-                target_net = ipaddress.ip_network(target, strict=False)
+    #         for authorized_network in config.AUTHORIZED_NETWORKS:
+    #             network = ipaddress.ip_network(authorized_network.strip(), strict=False)
+    #             if target_ip in network:
+    #                 return True
+            
+    #         return False
+            
+    #     except ValueError:
+    #         # If target is a network
+    #         try:
+    #             target_net = ipaddress.ip_network(target, strict=False)
                 
-                for authorized_network in config.AUTHORIZED_NETWORKS:
-                    auth_net = ipaddress.ip_network(authorized_network.strip(), strict=False)
-                    if target_net.overlaps(auth_net):
-                        return True
+    #             for authorized_network in config.AUTHORIZED_NETWORKS:
+    #                 auth_net = ipaddress.ip_network(authorized_network.strip(), strict=False)
+    #                 if target_net.overlaps(auth_net):
+    #                     return True
                 
-                return False
+    #             return False
                 
-            except ValueError:
-                return False
+    #         except ValueError:
+    #             return False
 
 # Create scanner instance
 scanner_service = ScannerService()

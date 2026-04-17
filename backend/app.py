@@ -558,6 +558,82 @@ def delete_single_attack_result(result_id):
         logger.error(f"Delete single attack result error: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+
+# ==================== HASHCAT ENDPOINTS ====================
+
+@app.route('/api/v1/scans/<int:scan_id>/hashcat-crack', methods=['POST'])
+def run_hashcat_crack(scan_id):
+    """
+    Crack password hashes using Hashcat
+    
+    POST body:
+    {
+        "hashes": ["5f4dcc3b5aa765d61d8327deb882cf99"],
+        "hash_type": 0,
+        "attack_mode": 0
+    }
+    """
+    try:
+        from services.hashcat_service import hashcat_service
+        
+        data = request.json
+        hashes = data.get('hashes', [])
+        hash_type = data.get('hash_type', 0)  # 0=MD5, 100=SHA1, 1000=NTLM
+        attack_mode = data.get('attack_mode', 0)  # 0=Dictionary, 3=Bruteforce
+        
+        if not hashes:
+            return jsonify({'error': 'Hashes are required'}), 400
+        
+        # Run Hashcat in background
+        import threading
+        
+        def run_crack():
+            try:
+                hashcat_service.crack_hashes(hashes, scan_id, hash_type, attack_mode)
+            except Exception as e:
+                logger.error(f"Hashcat crack error: {str(e)}")
+        
+        thread = threading.Thread(target=run_crack)
+        thread.daemon = True
+        thread.start()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Hashcat crack job started for {len(hashes)} hashes',
+            'scan_id': scan_id
+        }), 202
+        
+    except Exception as e:
+        logger.error(f"Hashcat endpoint error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/v1/scans/<int:scan_id>/hashcat-results', methods=['GET'])
+def get_hashcat_results(scan_id):
+    """Get Hashcat results for a scan"""
+    try:
+        import json
+        query = """
+        SELECT * FROM hashcat_results
+        WHERE scan_id = ?
+        ORDER BY started_at DESC
+        """
+        
+        results = db.execute_query(query, (scan_id,))
+        
+        # Parse JSON fields
+        for result in results:
+            result['cracked_hashes'] = json.loads(result.get('cracked_hashes', '[]'))
+        
+        return jsonify({
+            'scan_id': scan_id,
+            'results': results,
+            'count': len(results)
+        })
+        
+    except Exception as e:
+        logger.error(f"Get Hashcat results error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
     logger.info("=" * 60)
     logger.info("Starting Penetration Testing Framework API")
