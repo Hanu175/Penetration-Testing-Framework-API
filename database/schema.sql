@@ -127,6 +127,24 @@ CREATE TABLE IF NOT EXISTS settings (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+
+CREATE TABLE IF NOT EXISTS hash_discoveries (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,a
+    scan_id INTEGER NOT NULL,
+    sqli_result_id INTEGER,
+    hash_value TEXT NOT NULL,
+    hash_type INTEGER,
+    hash_type_name TEXT,
+    source TEXT,
+    discovered_at TEXT NOT NULL,
+    cracked INTEGER DEFAULT 0,
+    plaintext TEXT,
+    FOREIGN KEY (scan_id) REFERENCES scans(id) ON DELETE CASCADE,
+    FOREIGN KEY (sqli_result_id) REFERENCES sqlmap_results(id) ON DELETE CASCADE
+)
+
+
+
 -- Create indexes
 CREATE INDEX IF NOT EXISTS idx_scans_project ON scans (project_id);
 

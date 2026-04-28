@@ -12,6 +12,7 @@ from pathlib import Path
 from services.reporter_service import reporter_service
 from pathlib import Path
 from services.attack_service import attack_simulator
+import json
 
 # Add current directory to path
 sys.path.insert(0, str(Path(__file__).parent))
@@ -634,6 +635,130 @@ def get_hashcat_results(scan_id):
         logger.error(f"Get Hashcat results error: {str(e)}")
         return jsonify({'error': str(e)}), 500
 
+
+# ==================== SQLMAP ROUTES ====================
+
+@app.route('/api/v1/scans/<int:scan_id>/sqlmap-test', methods=['GET', 'POST', 'OPTIONS'])
+def run_sqlmap_test(scan_id):
+    if request.method == 'OPTIONS':
+        response = jsonify({'status': 'ok'})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        return response, 200
+
+    try:
+        from services.sqlmap_service import sqlmap_service
+        import json as json_module
+
+        data = request.get_json(force=True, silent=True) or {}
+        url     = data.get('url', '')
+        options = data.get('options', {})
+
+        if not url:
+            return jsonify({'error': 'URL is required'}), 400
+
+        logger.info(f"[SQLMap] Test requested | scan={scan_id} | url={url}")
+
+        import threading
+
+        def run_in_background():
+            try:
+                sqlmap_service.test_url(url, scan_id, options)
+                logger.info(f"[SQLMap] Test completed for scan {scan_id}")
+            except Exception as bg_err:
+                logger.error(f"[SQLMap] Background error: {str(bg_err)}")
+
+        t = threading.Thread(target=run_in_background, daemon=True)
+        t.start()
+
+        return jsonify({
+            'success': True,
+            'message': f'SQLMap started on {url}',
+            'scan_id': scan_id
+        }), 202
+
+    except Exception as e:
+        logger.error(f"[SQLMap] Endpoint error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/v1/scans/<int:scan_id>/sqlmap-results', methods=['GET'])
+def get_sqlmap_results(scan_id):
+    try:
+        import json as json_module
+
+        # Always ensure table exists
+        db.execute_update("""
+            CREATE TABLE IF NOT EXISTS sqlmap_results (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                scan_id INTEGER NOT NULL,
+                url TEXT NOT NULL,
+                vulnerable INTEGER DEFAULT 0,
+                status TEXT,
+                dbms TEXT,
+                injections TEXT,
+                databases TEXT,
+                started_at TEXT,
+                completed_at TEXT,
+                error TEXT
+            )
+        """)
+
+        rows = db.execute_query(
+            "SELECT * FROM sqlmap_results WHERE scan_id = ? ORDER BY started_at DESC",
+            (scan_id,)
+        )
+
+        for row in rows:
+            try:
+                row['injections'] = json_module.loads(row.get('injections') or '[]')
+            except Exception:
+                row['injections'] = []
+            try:
+                row['databases'] = json_module.loads(row.get('databases') or '[]')
+            except Exception:
+                row['databases'] = []
+
+        logger.info(f"[SQLMap] Returning {len(rows)} results for scan {scan_id}")
+        return jsonify({'scan_id': scan_id, 'results': rows, 'count': len(rows)})
+
+    except Exception as e:
+        logger.error(f"[SQLMap] Get results error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/v1/sqlmap-results/<int:result_id>', methods=['DELETE'])
+def delete_sqlmap_result(result_id):
+    try:
+        db.execute_update("DELETE FROM sqlmap_results WHERE id = ?", (result_id,))
+        return jsonify({'success': True, 'message': 'Deleted'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/api/v1/scans/<int:scan_id>/unified-report/pdf', methods=['POST'])
+def generate_unified_pdf_report(scan_id):
+    """Generate unified PDF combining attacks + SQLMap + Hashcat"""
+    try:
+        from services.attack_service import attack_simulator
+        from flask import send_file
+
+        filepath = attack_simulator.generate_unified_report_pdf(scan_id)
+        filename = Path(filepath).name
+
+        return send_file(
+            filepath,
+            mimetype='application/pdf',
+            as_attachment=True,
+            download_name=filename
+        )
+
+    except Exception as e:
+        logger.error(f"Unified report error: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+
+    
 if __name__ == '__main__':
     logger.info("=" * 60)
     logger.info("Starting Penetration Testing Framework API")
@@ -649,3 +774,4 @@ if __name__ == '__main__':
         debug=config.DEBUG,
         threaded=True
     )
+    

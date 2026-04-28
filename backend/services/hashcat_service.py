@@ -33,6 +33,8 @@ class HashcatService:
         'bcrypt': 3200,
         'MD5(Unix)': 500,
         'sha512crypt': 1800,
+        'WPA/WPA2': 22000,  # ← ADD THIS LINE
+        'WPA-PMKID': 22000,  # ← ADD THIS LINE
     }
     
     def __init__(self):
@@ -91,44 +93,32 @@ class HashcatService:
         if not wordlist_path.exists():
             # Top 1000 common passwords (subset shown for brevity)
             common_passwords = [
-                # Very common
+                # Most common - these WILL crack your test hashes
                 'password', '123456', '12345678', 'qwerty', 'abc123',
-                'monkey', '1234567', 'letmein', 'trustno1', 'dragon',
-                'baseball', '111111', 'iloveyou', 'master', 'sunshine',
-                'ashley', 'bailey', 'passw0rd', 'shadow', '123123',
-                
-                # Admin/default
-                'admin', 'password1', 'password123', 'welcome', 'login',
-                'admin123', 'root', 'toor', 'pass', 'test',
-                'guest', 'oracle', 'user', 'changeme', 'default',
-                
-                # Patterns
-                'Password1', 'P@ssw0rd', 'Welcome1', 'Admin123', 'Passw0rd!',
-                'qwertyuiop', 'asdfghjkl', 'zxcvbnm', '1q2w3e4r', 'qazwsx',
-                
-                # Names
-                'michael', 'jennifer', 'jordan', 'michelle', 'jessica',
-                'matthew', 'ashley', 'daniel', 'amanda', 'christopher',
-                
-                # Sports/Entertainment
-                'football', 'baseball', 'basketball', 'hockey', 'soccer',
-                'starwars', 'batman', 'superman', 'pokemon', 'minecraft',
-                
-                # Seasonal/Temporal
-                'summer', 'winter', 'spring', 'autumn', 'summer2024',
-                'january', 'february', 'march', 'april', 'may',
-                'monday', 'tuesday', 'wednesday', 'thursday', 'friday',
-                
-                # Keyboard patterns
-                'qwerty123', '1qaz2wsx', 'zaq12wsx', 'qazwsxedc',
-                
-                # Common with numbers
-                'password!', 'password@', 'password#', 'password$',
-                'qwerty1', 'qwerty12', 'qwerty123', 'abc123!',
-                
-                # Simple sequences
-                '1234', '12345', '123456789', '1234567890',
-                'abcdef', 'abcdefg', 'abcdefgh',
+                'test', 'admin', 'root', 'toor', 'user',
+                'letmein', 'welcome', 'monkey', 'dragon', 'master',
+                'iloveyou', 'sunshine', 'princess', 'shadow', 'login',
+                '1234', '12345', '123456789', '1234567890', '111111',
+                'password1', 'password123', 'passw0rd', 'P@ssw0rd',
+                'admin123', 'Admin123', 'Welcome1', 'changeme',
+                'qwerty123', 'qwertyuiop', 'asdfghjkl', 'zxcvbnm',
+                'abc123!', 'password!', 'test123', 'guest', 'default',
+                'soccer', 'baseball', 'football', 'batman', 'superman',
+                'michael', 'jessica', 'ashley', 'daniel', 'andrew',
+                'summer', 'winter', 'spring', 'hello', 'world',
+                '000000', '654321', '987654321', 'pass', 'pass123',
+                'secret', 'god', 'love', 'sex', 'money',
+                'truetrue', 'trustno1', 'whatever', 'matrix', 'mustang',
+                'access', 'computer', 'internet', 'service', 'ubuntu',
+                'alpha', 'omega', 'delta', 'ranger', 'hunter',
+                'harley', 'dakota', 'buster', 'tigger', 'cookie',
+                '1q2w3e4r', 'zaq12wsx', '1qaz2wsx', 'q1w2e3r4',
+                'passpass', 'testtest', 'adminadmin', 'rootroot',
+                # Common with symbols
+                'P@ss123', 'Admin@123', 'Test@123', 'Root@123',
+                # Years
+                'password2024', 'password2025', 'admin2024',
+                'Password1', 'Password12', 'Password123',
             ]
             
             with open(wordlist_path, 'w') as f:
@@ -187,6 +177,13 @@ class HashcatService:
             if not wordlist:
                 wordlist = str(self.wordlists_dir / 'common_passwords.txt')
             
+            print("HASH FILE CONTENT:")
+            with open(hash_file) as f:
+                print(f.read())
+
+            print("WORDLIST USED:", wordlist)
+
+            
             # Build Hashcat command
             cmd = [
                 str(self.hashcat_path),
@@ -196,63 +193,120 @@ class HashcatService:
                 wordlist,                  # Wordlist
                 '-o', str(output_file),    # Output file
                 '--force',                 # Force run (ignore warnings)
-                '--quiet',                 # Quiet mode
-                '--potfile-disable',       # Don't use potfile
+                # '--quiet',                 # Quiet mode
+                # '--potfile-disable',       # Don't use potfile
                 '--outfile-format=2',      # Format: hash:password
             ]
             
             self.logger.info(f"Executing Hashcat: {' '.join(cmd)}")
             
-            # Run Hashcat
+            # Run hashcat FROM its own directory so it finds OpenCL folder
+            
+            hashcat_dir = str(Path(self.hashcat_path).parent)
+
+            self.logger.info(f"Running Hashcat from directory: {hashcat_dir}")
+            self.logger.info(f"Hash file: {hash_file}")
+            self.logger.info(f"Output file: {output_file}")
+            self.logger.info(f"Wordlist: {wordlist}")
+
             process = subprocess.run(
                 cmd,
                 capture_output=True,
                 text=True,
-                timeout=300  # 5 minute timeout
+                timeout=300,
+                cwd=hashcat_dir
             )
-            
-            result['exit_code'] = process.returncode
-            
-            # Parse cracked hashes from output file
+
+            self.logger.info(f"Hashcat exit code: {process.returncode}")
+            self.logger.info(f"Hashcat STDOUT: {process.stdout[:500]}")
+            if process.stderr:
+                self.logger.warning(f"Hashcat STDERR: {process.stderr[:300]}")
+
+            # Check output file
+            self.logger.info(f"Output file exists: {output_file.exists()}")
             if output_file.exists():
-                with open(output_file, 'r') as f:
-                    for line in f:
-                        line = line.strip()
-                        if ':' in line:
-                            parts = line.split(':', 1)
-                            if len(parts) == 2:
-                                hash_val, password = parts
-                                result['cracked_hashes'].append({
-                                    'hash': hash_val.strip(),
-                                    'password': password.strip()
-                                })
-                
-                result['cracked_count'] = len(result['cracked_hashes'])
+                content = output_file.read_text()
+                self.logger.info(f"Output file content: '{content}'")
+            else:
+                # Hashcat may write to potfile instead - check there
+                potfile = Path(hashcat_dir) / 'hashcat.potfile'
+                self.logger.info(f"Potfile exists: {potfile.exists()}")
+                if potfile.exists():
+                    self.logger.info(f"Potfile content: {potfile.read_text()[:200]}")
+
+            # # Parse cracked hashes
+            # if output_file.exists():
+            #     with open(output_file, 'r') as f:
+            #         for line in f:
+            #             line = line.strip()
+            #             if line and ':' in line:
+            #                 parts = line.split(':', 1)
+            #                 if len(parts) == 2:
+            #                     result['cracked_hashes'].append({
+            #                         'hash': parts[0].strip(),
+            #                         'password': parts[1].strip()
+            #                     })
+
+            # result['cracked_count'] = len(result['cracked_hashes'])
             
-            # Determine status
+            # Read cracked hashes - check output file first, then potfile
+            cracked_lines = []
+
+            # Check output file
+            if output_file.exists():
+                self.logger.info(f"Reading output file: {output_file}")
+                with open(output_file, 'r', encoding='utf-8', errors='replace') as f:
+                    cracked_lines = [line.strip() for line in f if line.strip()]
+
+            # Fallback: read from potfile in hashcat directory
+            if not cracked_lines:
+                hashcat_dir = str(Path(self.hashcat_path).parent)
+                potfile = Path(hashcat_dir) / 'hashcat.potfile'
+                
+                if potfile.exists():
+                    self.logger.info(f"Reading potfile: {potfile}")
+                    
+                    # Load all hashes we submitted
+                    submitted_hashes = [h.strip().lower() for h in hashes]
+                    
+                    with open(potfile, 'r', encoding='utf-8', errors='replace') as f:
+                        for line in f:
+                            line = line.strip()
+                            if ':' in line:
+                                parts = line.split(':', 1)
+                                pot_hash = parts[0].strip().lower()
+                                # Only include hashes we submitted in THIS job
+                                if pot_hash in submitted_hashes:
+                                    cracked_lines.append(line)
+
+            # Parse cracked hashes
+            result['cracked_hashes'] = []
+            for line in cracked_lines:
+                if ':' in line:
+                    parts = line.split(':', 1)
+                    if len(parts) == 2:
+                        result['cracked_hashes'].append({
+                            'hash': parts[0].strip(),
+                            'password': parts[1].strip()
+                        })
+
+            result['cracked_count'] = len(result['cracked_hashes'])
+
             if result['cracked_count'] > 0:
                 result['status'] = 'success'
-                result['message'] = f"Cracked {result['cracked_count']} out of {result['hash_count']} hashes"
-            elif result['cracked_count'] == 0:
-                result['status'] = 'no_cracks'
-                result['message'] = 'No hashes cracked - try a larger wordlist or different attack mode'
+                result['message'] = f"Cracked {result['cracked_count']} of {result['hash_count']} hashes"
+                self.logger.info(f"SUCCESS: Cracked {result['cracked_count']} hashes")
             else:
-                result['status'] = 'completed'
-            
+                result['status'] = 'no_cracks'
+                result['message'] = 'No hashes cracked - try a larger wordlist'
+                self.logger.warning("No hashes cracked")
+                
             result['completed_at'] = datetime.now().isoformat()
-            
-            # Save results to database
+            # ✅ ADD THIS LINE
             self._save_results(scan_id, result)
-            
-            # Cleanup temporary files
-            try:
-                hash_file.unlink(missing_ok=True)
-                # Keep output file for reference
-            except:
-                pass
-            
+
             return result
-            
+                        
         except subprocess.TimeoutExpired:
             self.logger.error("Hashcat cracking timed out")
             result['status'] = 'timeout'

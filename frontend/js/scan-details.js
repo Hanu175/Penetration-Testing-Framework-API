@@ -1039,6 +1039,48 @@ async function downloadAttackReport() {
 // Make globally available
 window.downloadAttackReport = downloadAttackReport;
 
+async function downloadUnifiedReport() {
+    const btn = event.target;
+    const orig = btn.textContent;
+    btn.textContent = 'Generating...';
+    btn.disabled = true;
+
+    try {
+        const response = await fetch(
+            `${API_URL}/scans/${scanId}/unified-report/pdf`,
+            { method: 'POST' }
+        );
+
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.error || 'Failed to generate report');
+        }
+
+        // Trigger browser download
+        const blob = await response.blob();
+        const url  = URL.createObjectURL(blob);
+        const a    = document.createElement('a');
+        a.href     = url;
+        a.download = `pentest_report_scan${scanId}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+
+        alert('Unified PDF report downloaded successfully!');
+
+    } catch (error) {
+        console.error('Report error:', error);
+        alert(`Error: ${error.message}`);
+    } finally {
+        btn.textContent = orig;
+        btn.disabled = false;
+    }
+}
+
+window.downloadUnifiedReport = downloadUnifiedReport;
+
+
 
 function displayAttackResults(results) {
     const container = document.getElementById('attack-results-container');
@@ -1056,20 +1098,41 @@ function displayAttackResults(results) {
     container.style.display = 'block';
     container.scrollIntoView({ behavior: 'smooth', block: 'start' });
     
-    let html = `
-        <div style="display: flex; justify-content: space-between; align-items: center; margin: 2rem 0 1rem 0;">
-            <h3 style="margin: 0; color: #333;">📊 Attack Simulation Results (${results.length} tests)</h3>
-            <div style="display: flex; gap: 0.5rem;">
-                <button onclick="downloadAttackReport()" class="btn btn-primary">
-                    📥 Download PDF Report
-                </button>
-                <button onclick="deleteAllAttackResults()" class="btn btn-danger">
-                    🗑️ Delete All Results
-                </button>
-            </div>
-        </div>
-    `;
+    // let html = `
+    //     <div style="display: flex; justify-content: space-between; align-items: center; margin: 2rem 0 1rem 0;">
+    //         <h3 style="margin: 0; color: #333;">📊 Attack Simulation Results (${results.length} tests)</h3>
+    //         <div style="display: flex; gap: 0.5rem;">
+    //             <button onclick="downloadAttackReport()" class="btn btn-primary">
+    //                 📥 Download PDF Report
+    //             </button>
+    //             <button onclick="deleteAllAttackResults()" class="btn btn-danger">
+    //                 🗑️ Delete All Results
+    //             </button>
+    //         </div>
+    //     </div>
+    // `;
     
+    let html = '';
+
+        html += `
+            <div style="display:flex; justify-content:space-between; align-items:center; margin:2rem 0 1rem 0;">
+                <h3 style="margin:0; color:#333;">
+                    Attack Simulation Results (${results.length} tests)
+                </h3>
+                <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                    <button onclick="downloadUnifiedReport()" class="btn btn-primary">
+                        Download Full PDF Report
+                    </button>
+                    <button onclick="downloadAttackReport()" class="btn btn-secondary">
+                        Attacks Only PDF
+                    </button>
+                    <button onclick="deleteAllAttackResults()" class="btn btn-danger">
+                        Delete All Results
+                    </button>
+                </div>
+            </div>
+        `;
+
     // Calculate summary
     let vulnerableCount = 0;
     let validResults = [];
@@ -1356,7 +1419,7 @@ function showHashcatDialog() {
         <div class="modal-content" style="max-width: 700px;">
             <h2 style="color: #dc3545; margin-bottom: 1rem;">🔓 Password Hash Cracking</h2>
             
-            <div style="background: #fff3cd; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+            <div style="color: #dc3535; background: #fff3cd; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
                 <strong>⚠️ LEGAL WARNING</strong>
                 <p style="margin: 0.5rem 0;">This will attempt to crack password hashes using GPU acceleration!</p>
                 <p style="margin: 0.5rem 0 0 0; color: #856404;">
@@ -1364,13 +1427,13 @@ function showHashcatDialog() {
                 </p>
             </div>
             
-            <h3 style="margin-top: 1.5rem;">Password Hashes:</h3>
-            <p style="color: #666; font-size: 0.9rem; margin: 0.5rem 0;">Enter one hash per line</p>
+            <h3 style="color: #dc3535; margin-top: 1.5rem;">Password Hashes:</h3>
+            <h4 style="color: #dc3535; font-size: 0.9rem; margin: 0.5rem 0;">Enter one hash per line</h4>
             <textarea id="hashcat-hashes" class="form-input" rows="5" 
                       placeholder="5f4dcc3b5aa765d61d8327deb882cf99&#10;e10adc3949ba59abbe56e057f20f883e&#10;098f6bcd4621d373cade4e832627b4f6"
                       style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 1rem; font-family: monospace; font-size: 0.9rem;"></textarea>
             
-            <h3 style="margin-top: 1rem;">Hash Type:</h3>
+            <h3 style="color: #dc3535; margin-top: 1rem;">Hash Type:</h3>
             <select id="hashcat-type" class="form-input" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 1rem;">
                 <option value="0">MD5</option>
                 <option value="100">SHA1</option>
@@ -1382,7 +1445,7 @@ function showHashcatDialog() {
                 <option value="1800">sha512crypt (Unix)</option>
             </select>
             
-            <h3 style="margin-top: 1rem;">Attack Mode:</h3>
+            <h3 style="color: #dc3535; margin-top: 1rem;">Attack Mode:</h3>
             <select id="hashcat-attack" class="form-input" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 1rem;">
                 <option value="0">Dictionary Attack (Fast, common passwords)</option>
                 <option value="3">Bruteforce (Slow, tries all combinations)</option>
@@ -1396,7 +1459,7 @@ function showHashcatDialog() {
                 </p>
             </div>
             
-            <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+            <div style="color: #dc3535;margin-top: 1.5rem; display: flex; gap: 1rem;">
                 <button onclick="window.startHashcatCrack(this.parentElement.parentElement.parentElement)" class="btn btn-danger" style="flex: 1;">
                     💥 Start Cracking
                 </button>
@@ -1538,56 +1601,436 @@ function getHashTypeName(type) {
     };
     return types[type] || `Type ${type}`;
 }
-
 let hashcatPollAttempts = 0;
-const maxHashcatPollAttempts = 30; // 5 minutes
+const maxHashcatPollAttempts = 30;
 
 function pollHashcatResults() {
     setTimeout(async () => {
         hashcatPollAttempts++;
         console.log(`Hashcat poll attempt ${hashcatPollAttempts}/${maxHashcatPollAttempts}`);
-        
+
         try {
             const response = await fetch(`${API_URL}/scans/${scanId}/hashcat-results`);
             const data = await response.json();
+
+            console.log('Poll response:', data);
+
+            // if (data.results && data.results.length > 0) {
+            //     // Check if the latest result is done (not still running)
+            //     // const latest = data.results[0];
+            //     const latest = data.results[data.results.length - 1];
+            //     const isDone = latest.status === 'success' ||
+            //                    latest.status === 'no_cracks' ||
+            //                    latest.status === 'error' ||
+            //                    latest.status === 'timeout';
+
+            //     if (isDone) {
+            //         console.log('Hashcat job finished, displaying results');
+            //         displayHashcatResults(data.results);
+            //         hashcatPollAttempts = 0;
+            //         return; // Stop polling
+            //     }
+            // }
+
+
+            if (data.results) {
+                console.log("Displaying results:", data.results);
+
+                // ALWAYS render
+                displayHashcatResults(data.results);
+
+                // Use LAST item (latest)
+                const latest = data.results[data.results.length - 1];
+
+                const isDone = latest.status === 'success' ||
+                            latest.status === 'no_cracks' ||
+                            latest.status === 'error' ||
+                            latest.status === 'timeout';
+
+                if (isDone) {
+                    console.log("Stopping polling, job finished");
+                    hashcatPollAttempts = 0;
+                    return;
+                }
+            }
+
+            // Keep polling if not done
+            if (hashcatPollAttempts < maxHashcatPollAttempts) {
+                pollHashcatResults();
+            } else {
+                const container = document.getElementById('hashcat-container');
+                if (container) {
+                    container.innerHTML = `
+                        <div style="padding:1rem; background:#fff3cd; border-radius:4px;">
+                            <strong>Hashcat taking longer than expected.</strong>
+                            <button onclick="loadHashcatResults()" 
+                                    style="margin-left:10px; padding:5px 10px; cursor:pointer;">
+                                Refresh Results
+                            </button>
+                        </div>`;
+                }
+                hashcatPollAttempts = 0;
+            }
+
+        } catch (error) {
+            console.error('Poll error:', error);
+            if (hashcatPollAttempts < maxHashcatPollAttempts) {
+                pollHashcatResults();
+            }
+        }
+    }, 3000); // Poll every 3 seconds instead of 10
+}
+
+function displayHashcatResults(results) {
+    const container = document.getElementById('hashcat-results-container');
+    
+    if (!container) {
+        console.error('hashcat-results-container element not found');
+        return;
+    }
+    
+    if (!results || results.length === 0) {
+        container.innerHTML = '<p style="color: #666;">No password cracking jobs run yet.</p>';
+        return;
+    }
+    
+    let html = '';
+    
+    results.forEach((job, index) => {
+        // Parse cracked_hashes if it's a string
+        let crackedHashes = job.cracked_hashes;
+        if (typeof crackedHashes === 'string') {
+            try {
+                crackedHashes = JSON.parse(crackedHashes);
+            } catch(e) {
+                crackedHashes = [];
+            }
+        }
+        crackedHashes = crackedHashes || [];
+        
+        const success = job.status === 'success' && crackedHashes.length > 0;
+        
+        html += `
+        <div style="border: 1px solid ${success ? '#28a745' : '#dc3545'}; 
+                    border-radius: 8px; padding: 15px; margin: 10px 0;
+                    background: ${success ? '#f0fff4' : '#fff5f5'};">
+            
+            <h4 style="margin: 0 0 10px 0; color: ${success ? '#28a745' : '#dc3545'};">
+                ${success ? '[OK]' : '[FAIL]'} Password Cracking Job #${index + 1}
+            </h4>
+            
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 4px 8px; font-weight: bold; width: 150px;">Status:</td>
+                    <td style="padding: 4px 8px;">${job.status || 'unknown'}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 4px 8px; font-weight: bold;">Hash Type:</td>
+                    <td style="padding: 4px 8px;">${getHashTypeName(job.hash_type)}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 4px 8px; font-weight: bold;">Total Hashes:</td>
+                    <td style="padding: 4px 8px;">${job.hash_count || 0}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 4px 8px; font-weight: bold;">Cracked:</td>
+                    <td style="padding: 4px 8px; color: ${success ? '#28a745' : '#dc3545'}; font-weight: bold;">
+                        ${job.cracked_count || 0} / ${job.hash_count || 0}
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 4px 8px; font-weight: bold;">Started:</td>
+                    <td style="padding: 4px 8px;">${job.started_at ? new Date(job.started_at).toLocaleString() : 'N/A'}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 4px 8px; font-weight: bold;">Completed:</td>
+                    <td style="padding: 4px 8px;">${job.completed_at ? new Date(job.completed_at).toLocaleString() : 'N/A'}</td>
+                </tr>
+                ${job.message ? `
+                <tr>
+                    <td style="padding: 4px 8px; font-weight: bold;">Message:</td>
+                    <td style="padding: 4px 8px;">${job.message}</td>
+                </tr>` : ''}
+            </table>
+            
+            ${crackedHashes.length > 0 ? `
+            <div style="margin-top: 15px; padding: 10px; 
+                        background: #d4edda; border-radius: 5px; border: 1px solid #28a745;">
+                <h5 style="margin: 0 0 10px 0; color: #155724;">
+                    [OK] Cracked Passwords (${crackedHashes.length}):
+                </h5>
+                <table style="width: 100%; border-collapse: collapse; font-family: monospace;">
+                    <tr style="background: #155724; color: white;">
+                        <th style="padding: 6px 10px; text-align: left;">Hash</th>
+                        <th style="padding: 6px 10px; text-align: left;">Password</th>
+                    </tr>
+                    ${crackedHashes.map((h, i) => `
+                    <tr style="background: ${i % 2 === 0 ? '#f8fff9' : 'white'};">
+                        <td style="padding: 6px 10px; font-size: 12px; color: #333;">
+                            ${h.hash || 'N/A'}
+                        </td>
+                        <td style="padding: 6px 10px; font-weight: bold; color: #28a745; font-size: 14px;">
+                            ${h.password || 'N/A'}
+                        </td>
+                    </tr>`).join('')}
+                </table>
+            </div>` : `
+            <div style="margin-top: 10px; padding: 10px; 
+                        background: #f8d7da; border-radius: 5px;">
+                <p style="margin: 0; color: #721c24;">
+                    No passwords cracked. Try a larger wordlist.
+                </p>
+            </div>`}
+        </div>`;
+    });
+    
+    container.innerHTML = html;
+}
+
+
+// ==================== SQLMAP FUNCTIONS ====================
+
+function showSQLMapDialog() {
+    console.log(`showSQLMapDialog called with scanId: ${scanId}`);
+    
+    if (!scanId) {
+        alert('Error: No scan ID available for SQLMap test');
+        return;
+    }
+    
+    const dialog = document.createElement('div');
+    dialog.className = 'modal-overlay';
+    dialog.innerHTML = `
+        <div class="modal-content" style="max-width: 700px;">
+            <h2 style="color: #dc3545; margin-bottom: 1rem;">🗡️ SQLMap Injection Test</h2>
+            
+            <div style="background: #a38e48; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                <strong>⚠️ LEGAL WARNING</strong>
+                <p style="margin: 0.5rem 0;">This will perform REAL SQL injection attacks on the target!</p>
+                <p style="margin: 0.5rem 0 0 0; color: #856404;">
+                    <strong>ONLY use on systems you own or have written authorization to test!</strong>
+                </p>
+            </div>
+            
+            <h3 style="color: #dc3535; margin-top: 1.5rem;">Target URL:</h3>
+            <input type="text" id="sqlmap-url" class="form-input" placeholder="http://target.com/page?id=1" 
+                   style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 1rem;">
+            
+            <h3 style="color: #dc3535; margin-top: 1rem;">Test Level:</h3>
+            <select id="sqlmap-level" class="form-input" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 1rem;">
+                <option value="1">Level 1 - Fast (Default tests)</option>
+                <option value="2">Level 2 - Medium (More payloads)</option>
+                <option value="3">Level 3 - Thorough (Extensive tests)</option>
+                <option value="4">Level 4 - Deep (All parameters)</option>
+                <option value="5">Level 5 - Maximum (Every possible test)</option>
+            </select>
+            
+            <h3 style="color: #dc3535; margin-top: 1rem;">Risk Level:</h3>
+            <select id="sqlmap-risk" class="form-input" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 1rem;">
+                <option value="1">Risk 1 - Safe (No dangerous queries)</option>
+                <option value="2">Risk 2 - Medium (Heavy queries, OR-based)</option>
+                <option value="3">Risk 3 - High (May cause issues - UPDATE queries)</option>
+            </select>
+            
+            <h3 style="color: #dc3535; margin-top: 1rem;">Additional Options:</h3>
+            <div style="margin: 1rem 0;">
+                <label style="color: #dc3535; display: block; margin: 0.5rem 0; cursor: pointer;">
+                    <input type="checkbox" id="sqlmap-enumerate-dbs"> 
+                    Enumerate Databases (if vulnerable)
+                </label>
+                <label style="color: #dc3535; display: block; margin: 0.5rem 0; cursor: pointer;">
+                    <input type="checkbox" id="sqlmap-current-user"> 
+                    Get Current Database User
+                </label>
+                <label style="color: #dc3535; display: block; margin: 0.5rem 0; cursor: pointer;">
+                    <input type="checkbox" id="sqlmap-current-db"> 
+                    Get Current Database Name
+                </label>
+            </div>
+            
+            <div style="color: #dc3535; margin-top: 1.5rem; display: flex; gap: 1rem;">
+                <button onclick="window.startSQLMapTest(this.parentElement.parentElement.parentElement)" class="btn btn-danger" style="flex: 1;">
+                    🎯 Start SQL Injection Test
+                </button>
+                <button onclick="this.parentElement.parentElement.parentElement.remove()" class="btn btn-secondary" style="flex: 1;">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    `;
+    
+    dialog.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        overflow-y: auto;
+    `;
+    
+    document.body.appendChild(dialog);
+    console.log('✅ SQLMap dialog displayed');
+}
+
+async function startSQLMapTest(dialogElement) {
+    console.log(`startSQLMapTest called with scanId: ${scanId}`);
+    
+    if (!scanId) {
+        alert('Error: No scan ID available');
+        return;
+    }
+    
+    // Get input values
+    const url = document.getElementById('sqlmap-url').value.trim();
+    const level = parseInt(document.getElementById('sqlmap-level').value);
+    const risk = parseInt(document.getElementById('sqlmap-risk').value);
+    const enumerateDbs = document.getElementById('sqlmap-enumerate-dbs').checked;
+    const currentUser = document.getElementById('sqlmap-current-user').checked;
+    const currentDb = document.getElementById('sqlmap-current-db').checked;
+    
+    if (!url) {
+        alert('Please enter a target URL');
+        return;
+    }
+    
+    // Validate URL format
+    try {
+        new URL(url);
+    } catch {
+        alert('Please enter a valid URL (must include http:// or https://)');
+        return;
+    }
+    
+    // Close dialog
+    dialogElement.remove();
+    
+    // Show progress
+    const container = document.getElementById('sqlmap-container');
+    if (container) {
+        container.innerHTML = `
+            <div class="card" style="margin-bottom: 2rem;">
+                <div style="padding: 1.5rem; background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; border-radius: 8px;">
+                    <h3 style="margin: 0 0 1rem 0; color: white;">🗡️ SQLMap Test in Progress</h3>
+                    <p style="margin: 0.5rem 0;">Target: ${url}</p>
+                    <p style="margin: 0.5rem 0;">Level: ${level} | Risk: ${risk}</p>
+                    <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">⏱️ This may take 3-5 minutes...</p>
+                    <div class="spinner" style="margin-top: 1rem;"></div>
+                </div>
+            </div>
+        `;
+        container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    
+    try {
+        const response = await fetch(`${API_URL}/scans/${scanId}/sqlmap-test`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                url: url,
+                options: {
+                    level: level,
+                    risk: risk,
+                    enumerate_dbs: enumerateDbs,
+                    current_user: currentUser,
+                    current_db: currentDb
+                }
+            })
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+            console.log('✅ SQLMap test started:', data);
+            
+            if (container) {
+                container.innerHTML = `
+                    <div class="card" style="margin-bottom: 2rem;">
+                        <div style="padding: 1.5rem; background: #d4edda; border-left: 4px solid #28a745; border-radius: 4px;">
+                            <h3 style="margin: 0 0 0.5rem 0; color: #155724;">✅ SQLMap Test Started</h3>
+                            <p style="margin: 0.5rem 0; color: #155724;">${data.message || 'Test is running in background'}</p>
+                            <p style="margin: 0.5rem 0 0 0; color: #155724;">⏳ Checking for results every 10 seconds...</p>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // Poll for results
+            pollSQLMapResults();
+            
+        } else {
+            throw new Error(data.error || 'SQLMap test request failed');
+        }
+        
+    } catch (error) {
+        console.error('❌ SQLMap test error:', error);
+        
+        if (container) {
+            container.innerHTML = `
+                <div class="card" style="margin-bottom: 2rem;">
+                    <div style="padding: 1.5rem; background: #f8d7da; border-left: 4px solid #dc3545; border-radius: 4px;">
+                        <h3 style="margin: 0 0 0.5rem 0; color: #721c24;">❌ SQLMap Test Error</h3>
+                        <p style="margin: 0; color: #721c24;">${error.message}</p>
+                    </div>
+                </div>
+            `;
+        }
+    }
+}
+
+let sqlmapPollAttempts = 0;
+const maxSQLMapPollAttempts = 30; // 5 minutes (30 × 10 seconds)
+
+function pollSQLMapResults() {
+    setTimeout(async () => {
+        sqlmapPollAttempts++;
+        console.log(`SQLMap poll attempt ${sqlmapPollAttempts}/${maxSQLMapPollAttempts}`);
+        
+        try {
+            const response = await fetch(`${API_URL}/scans/${scanId}/sqlmap-results`);
+            const data = await response.json();
             
             if (data.results && data.results.length > 0) {
-                console.log(`✅ Found ${data.results.length} Hashcat results`);
-                displayHashcatResults(data.results);
-                hashcatPollAttempts = 0;
+                console.log(`✅ Found ${data.results.length} SQLMap results`);
+                displaySQLMapResults(data.results);
+                sqlmapPollAttempts = 0;
             } else {
-                if (hashcatPollAttempts < maxHashcatPollAttempts) {
-                    pollHashcatResults();
+                if (sqlmapPollAttempts < maxSQLMapPollAttempts) {
+                    pollSQLMapResults(); // Continue polling
                 } else {
-                    const container = document.getElementById('hashcat-container');
+                    const container = document.getElementById('sqlmap-container');
                     if (container) {
                         container.innerHTML = `
                             <div class="card" style="margin-bottom: 2rem;">
                                 <div style="padding: 1.5rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
-                                    <h3 style="margin: 0 0 0.5rem 0; color: #856404;">⚠️ Cracking Still Running</h3>
-                                    <p style="margin: 0; color: #856404;">Hashcat is taking longer than expected. Refresh the page in a few minutes.</p>
+                                    <h3 style="margin: 0 0 0.5rem 0; color: #856404;">⚠️ Test Still Running</h3>
+                                    <p style="margin: 0; color: #856404;">SQLMap test is taking longer than expected. Refresh the page in a few minutes.</p>
                                 </div>
                             </div>
                         `;
                     }
-                    hashcatPollAttempts = 0;
+                    sqlmapPollAttempts = 0;
                 }
             }
         } catch (error) {
-            console.error('Error polling Hashcat results:', error);
-            if (hashcatPollAttempts < maxHashcatPollAttempts) {
-                pollHashcatResults();
+            console.error('Error polling SQLMap results:', error);
+            if (sqlmapPollAttempts < maxSQLMapPollAttempts) {
+                pollSQLMapResults();
             }
         }
     }, 10000); // Poll every 10 seconds
 }
 
-function displayHashcatResults(results) {
-    const container = document.getElementById('hashcat-results-container');
+function displaySQLMapResults(results) {
+    const container = document.getElementById('sqlmap-results-container');
     if (!container) return;
     
     // Clear progress message
-    const progressContainer = document.getElementById('hashcat-container');
+    const progressContainer = document.getElementById('sqlmap-container');
     if (progressContainer) {
         progressContainer.innerHTML = '';
     }
@@ -1596,56 +2039,75 @@ function displayHashcatResults(results) {
     container.scrollIntoView({ behavior: 'smooth', block: 'start' });
     
     let html = `
-        <h3 style="margin: 2rem 0 1rem 0; color: #333;">🔓 Hashcat Cracking Results</h3>
+        <h3 style="margin: 2rem 0 1rem 0; color: #333;">🗡️ SQLMap Test Results</h3>
     `;
     
     results.forEach((result, index) => {
-        const success = result.cracked_count > 0;
-        const borderColor = success ? '#28a745' : '#6c757d';
-        const bgColor = success ? '#d4edda' : '#e9ecef';
-        const textColor = success ? '#155724' : '#495057';
+        const borderColor = result.vulnerable ? '#dc3545' : '#28a745';
+        const bgColor = result.vulnerable ? '#f8d7da' : '#d4edda';
+        const textColor = result.vulnerable ? '#721c24' : '#155724';
+        const icon = result.vulnerable ? '❌' : '✅';
         
-        // Parse cracked hashes
-        let crackedHashes = [];
+        // Parse injections
+        let injections = [];
         try {
-            crackedHashes = JSON.parse(result.cracked_hashes || '[]');
+            injections = JSON.parse(result.injections || '[]');
         } catch (e) {
-            console.error('Error parsing cracked hashes:', e);
+            console.error('Error parsing injections:', e);
+        }
+        
+        // Parse databases
+        let databases = [];
+        try {
+            databases = JSON.parse(result.databases || '[]');
+        } catch (e) {
+            console.error('Error parsing databases:', e);
         }
         
         html += `
             <div class="card" style="margin-bottom: 1.5rem; border-left: 4px solid ${borderColor};">
                 <div style="padding: 1.5rem;">
                     <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-                        <h4 style="margin: 0; color: #333;">Password Cracking Job #${index + 1}</h4>
+                        <h4 style="margin: 0; color: #333;">${icon} SQL Injection Test</h4>
+                        <button onclick="deleteSQLMapResult(${result.id})" class="btn btn-danger btn-small">
+                            🗑️ Delete
+                        </button>
                     </div>
                     
                     <div style="background: ${bgColor}; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;">
                         <p style="margin: 0; color: ${textColor}; font-weight: 600;">
-                            ${success ? `✅ Cracked ${result.cracked_count} of ${result.hash_count} passwords!` : '❌ No passwords cracked'}
+                            ${result.vulnerable ? '❌ VULNERABLE - SQL Injection Found!' : '✅ SECURE - No SQL Injection Detected'}
                         </p>
                     </div>
                     
                     <div style="margin-bottom: 1rem;">
+                        <p style="margin: 0.5rem 0;"><strong>🎯 Target URL:</strong> ${result.url}</p>
                         <p style="margin: 0.5rem 0;"><strong>📊 Status:</strong> ${result.status}</p>
-                        <p style="margin: 0.5rem 0;"><strong>🔐 Hash Type:</strong> ${getHashTypeName(result.hash_type)}</p>
-                        <p style="margin: 0.5rem 0;"><strong>⚡ Attack Mode:</strong> ${result.attack_mode === 0 ? 'Dictionary' : 'Bruteforce'}</p>
-                        <p style="margin: 0.5rem 0;"><strong>📈 Total Hashes:</strong> ${result.hash_count}</p>
-                        <p style="margin: 0.5rem 0;"><strong>✅ Cracked:</strong> ${result.cracked_count}</p>
-                        ${result.message ? `<p style="margin: 0.5rem 0;"><strong>💬 Message:</strong> ${result.message}</p>` : ''}
+                        ${result.dbms ? `<p style="margin: 0.5rem 0;"><strong>💾 Database:</strong> ${result.dbms}</p>` : ''}
                         <p style="margin: 0.5rem 0;"><strong>🕐 Started:</strong> ${new Date(result.started_at).toLocaleString()}</p>
                         ${result.completed_at ? `<p style="margin: 0.5rem 0;"><strong>✅ Completed:</strong> ${new Date(result.completed_at).toLocaleString()}</p>` : ''}
                     </div>
                     
-                    ${crackedHashes.length > 0 ? `
-                        <div style="background: #d4edda; padding: 1rem; border-left: 3px solid #28a745; margin: 1rem 0; border-radius: 4px;">
-                            <strong>🔓 Cracked Passwords:</strong>
-                            ${crackedHashes.map(crack => `
-                                <div style="margin: 0.75rem 0; padding: 0.75rem; background: white; border-radius: 4px; font-family: monospace; font-size: 0.9rem;">
-                                    <p style="margin: 0.25rem 0; word-break: break-all;"><strong>Hash:</strong> ${crack.hash}</p>
-                                    <p style="margin: 0.25rem 0; color: #28a745; font-weight: bold;"><strong>Password:</strong> ${crack.password}</p>
+                    ${injections.length > 0 ? `
+                        <div style="background: #fff3cd; padding: 1rem; border-left: 3px solid #ffc107; margin: 1rem 0; border-radius: 4px;">
+                            <strong>💉 Injection Points Found:</strong>
+                            ${injections.map(inj => `
+                                <div style="margin: 0.75rem 0; padding: 0.5rem; background: white; border-radius: 4px;">
+                                    <p style="margin: 0.25rem 0;"><strong>Parameter:</strong> ${inj.parameter || 'N/A'}</p>
+                                    <p style="margin: 0.25rem 0;"><strong>Type:</strong> ${inj.type || 'N/A'}</p>
+                                    <p style="margin: 0.25rem 0;"><strong>Title:</strong> ${inj.title || 'N/A'}</p>
+                                    ${inj.payload ? `<p style="margin: 0.25rem 0; font-family: monospace; font-size: 0.85rem; word-break: break-all;"><strong>Payload:</strong> ${inj.payload}</p>` : ''}
                                 </div>
                             `).join('')}
+                        </div>
+                    ` : ''}
+                    
+                    ${databases.length > 0 ? `
+                        <div style="background: #e7f3ff; padding: 1rem; border-left: 3px solid #2196f3; margin: 1rem 0; border-radius: 4px;">
+                            <strong>💾 Databases Found:</strong>
+                            <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
+                                ${databases.map(db => `<li>${db}</li>`).join('')}
+                            </ul>
                         </div>
                     ` : ''}
                     
@@ -1661,6 +2123,33 @@ function displayHashcatResults(results) {
     });
     
     container.innerHTML = html;
+}
+
+async function deleteSQLMapResult(resultId) {
+    if (!confirm('Delete this SQLMap test result?')) return;
+    
+    try {
+        const response = await fetch(`${API_URL}/sqlmap-results/${resultId}`, {
+            method: 'DELETE'
+        });
+        
+        if (response.ok) {
+            // Reload results
+            const resultsResponse = await fetch(`${API_URL}/scans/${scanId}/sqlmap-results`);
+            const data = await resultsResponse.json();
+            
+            if (data.results && data.results.length > 0) {
+                displaySQLMapResults(data.results);
+            } else {
+                document.getElementById('sqlmap-results-container').style.display = 'none';
+            }
+            
+            alert('✅ SQLMap result deleted');
+        }
+    } catch (error) {
+        console.error('Error deleting SQLMap result:', error);
+        alert('❌ Error deleting result');
+    }
 }
 
 // ==================== EVENT LISTENERS ====================
@@ -1700,17 +2189,33 @@ async function loadSQLMapResults() {
     }
 }
 
-async function loadHashcatResults() {
-    try {
-        const response = await fetch(`${API_URL}/scans/${scanId}/hashcat-results`);
-        const data = await response.json();
+// async function loadHashcatResults() {
+//     try {
+//         const response = await fetch(`${API_URL}/scans/${scanId}/hashcat-results`);
+//         const data = await response.json();
         
-        if (data.results && data.results.length > 0) {
-            displayHashcatResults(data.results);
-        }
-    } catch (error) {
-        console.error('Error loading Hashcat results:', error);
-    }
+//         if (data.results && data.results.length > 0) {
+//             displayHashcatResults(data.results);
+//         }
+//     } catch (error) {
+//         console.error('Error loading Hashcat results:', error);
+//     }
+// }
+
+// ── Load existing Hashcat results on page load ──
+function loadHashcatResults() {
+    fetch(`${API_URL}/scans/${scanId}/hashcat-results`)
+        .then(r => r.json())
+        .then(data => {
+            console.log('Hashcat results from DB:', data);
+            if (data.results && data.results.length > 0) {
+                displayHashcatResults(data.results);
+            } else {
+                const c = document.getElementById('hashcat-results-container');
+                if (c) c.innerHTML = '<p style="color:#666;">No cracking jobs yet. Click the button above to start.</p>';
+            }
+        })
+        .catch(err => console.error('loadHashcatResults error:', err));
 }
 
 // Make functions globally available
@@ -1719,3 +2224,108 @@ window.startSQLMapTest = startSQLMapTest;
 window.deleteSQLMapResult = deleteSQLMapResult;
 window.showHashcatDialog = showHashcatDialog;
 window.startHashcatCrack = startHashcatCrack;
+
+
+// ==================== HASH DISCOVERY ====================
+
+function discoverHashes() {
+    const resultsDiv = document.getElementById('hash-discovery-results');
+    
+    // Get the most recent SQLMap result
+    fetch(`/api/v1/scans/${scanId}/sqlmap-results`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.results && data.results.length > 0) {
+                const latestResult = data.results[0];
+                
+                resultsDiv.innerHTML = '<p>🔍 Searching for password hashes...</p>';
+                
+                // Discover hashes
+                return fetch(`/api/v1/scans/${scanId}/discover-hashes`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({sqli_result_id: latestResult.id})
+                });
+            } else {
+                resultsDiv.innerHTML = '<p>❌ No SQLMap results found. Run SQL injection test first.</p>';
+                return null;
+            }
+        })
+        .then(response => {
+            if (!response) return;
+            return response.json();
+        })
+        .then(data => {
+            if (!data) return;
+            
+            if (data.success && data.hashes) {
+                let html = `<div class="success-box">
+                    <h4>✅ Found ${data.hashes_found} Password Hashes!</h4>
+                    <p>Hashes ready for Hashcat cracking:</p>
+                    <div style="max-height: 300px; overflow-y: auto; background: #f5f5f5; padding: 10px; border-radius: 5px;">`;
+                
+                data.hashes.forEach(h => {
+                    html += `<div style="margin: 5px 0; font-family: monospace;">
+                        <strong>${h.type_name}:</strong> ${h.hash}
+                    </div>`;
+                });
+                
+                html += `</div>
+                    <button onclick="sendHashesToHashcat(${JSON.stringify(data.hashes).replace(/"/g, '&quot;')})" class="btn btn-primary" style="margin-top: 10px;">
+                        🔓 Crack with Hashcat
+                    </button>
+                </div>`;
+                
+                resultsDiv.innerHTML = html;
+            } else {
+                resultsDiv.innerHTML = `<div class="warning-box">
+                    <p>⚠️ ${data.message || 'No hashes found'}</p>
+                    <p>${data.suggestion || ''}</p>
+                </div>`;
+            }
+        })
+        .catch(error => {
+            resultsDiv.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+        });
+}
+
+function sendHashesToHashcat(hashes) {
+    // Get unique hash type
+    const hashType = hashes[0].type;
+    const hashStrings = hashes.map(h => h.hash);
+    
+    // Scroll to Hashcat section
+    document.getElementById('hashcat-section').scrollIntoView({behavior: 'smooth'});
+    
+    // Fill in Hashcat form
+    setTimeout(() => {
+        document.getElementById('hashcat-hashes').value = hashStrings.join('\n');
+        document.getElementById('hashcat-type').value = hashType;
+        
+        // Auto-start cracking
+        if (confirm('Start cracking these hashes now?')) {
+            startHashcatCrack();
+        }
+    }, 500);
+}
+
+// Show hash discovery button when SQLMap finds SQLi
+function checkForSQLiAndShowHashDiscovery() {
+    fetch(`/api/v1/scans/${scanId}/sqlmap-results`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.results && data.results.length > 0) {
+                const vulnerable = data.results.some(r => r.vulnerable);
+                if (vulnerable) {
+                    document.getElementById('sqlmap-hash-discovery').style.display = 'block';
+                }
+            }
+        });
+}
+
+// Call this when page loads
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', checkForSQLiAndShowHashDiscovery);
+} else {
+    checkForSQLiAndShowHashDiscovery();
+}
