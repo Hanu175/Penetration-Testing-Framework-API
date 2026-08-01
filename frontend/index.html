@@ -11,8 +11,8 @@
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-brand">
-                <span class="brand-icon">🛡️</span>
-                <span class="brand-name">PenTest Framework</span>
+                <span class="brand-icon">&gt;_</span>
+                <span class="brand-name">Pentest Framework</span>
             </div>
             <ul class="nav-menu">
                 <li><a href="index.html" class="active">Dashboard</a></li>
@@ -26,13 +26,13 @@
     <div class="container">
         <div class="page-header">
             <h1>Security Dashboard</h1>
-            <p class="subtitle">Real-time penetration testing insights</p>
+            <p class="subtitle">Reconnaissance . Exploitation . Reporting</p>
         </div>
 
         <!-- Statistics Cards -->
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-icon blue">📊</div>
+                <div class="stat-icon blue">SCAN</div>
                 <div class="stat-content">
                     <div class="stat-label">Total Scans</div>
                     <div class="stat-value" id="total-scans">0</div>
@@ -40,7 +40,7 @@
             </div>
 
             <div class="stat-card">
-                <div class="stat-icon red">🔴</div>
+                <div class="stat-icon red">CRIT</div>
                 <div class="stat-content">
                     <div class="stat-label">Critical Vulnerabilities</div>
                     <div class="stat-value" id="critical-vulns">0</div>
@@ -48,7 +48,7 @@
             </div>
 
             <div class="stat-card">
-                <div class="stat-icon orange">🟠</div>
+                <div class="stat-icon orange">HIGH</div>
                 <div class="stat-content">
                     <div class="stat-label">High Vulnerabilities</div>
                     <div class="stat-value" id="high-vulns">0</div>
@@ -56,7 +56,7 @@
             </div>
 
             <div class="stat-card">
-                <div class="stat-icon yellow">🟡</div>
+                <div class="stat-icon yellow">MED</div>
                 <div class="stat-content">
                     <div class="stat-label">Medium Vulnerabilities</div>
                     <div class="stat-value" id="medium-vulns">0</div>
@@ -94,7 +94,7 @@
                 </table>
             </div>
             <div id="no-scans" style="display: none; text-align: center; padding: 40px;">
-                <p style="color: #888;">No scans yet. Create your first scan to get started!</p>
+                <p style="color: var(--text-dim);">No scans yet. Create your first scan to get started!</p>
                 <a href="new-scan.html" class="btn btn-primary" style="margin-top: 20px;">Create First Scan</a>
             </div>
         </div>

@@ -67,16 +67,16 @@ async function loadScanDetails() {
             loadAttackResults();
         }, 1000);
         
-        console.log('✅ Scan details loaded successfully');
+        console.log(' Scan details loaded successfully');
         
     } catch (error) {
-        console.error('❌ Error loading scan:', error);
+        console.error(' Error loading scan:', error);
         
         if (loadingState) loadingState.style.display = 'none';
         if (content) {
             content.innerHTML = `
                 <div class="alert alert-danger">
-                    <strong>❌ Error Loading Scan</strong>
+                    <strong>[FAIL] Error Loading Scan</strong>
                     <p>${error.message}</p>
                     <a href="index.html" class="btn btn-primary">Back to Dashboard</a>
                 </div>
@@ -156,8 +156,8 @@ function createSeveritySection(severity, vulnerabilities) {
     // Section header
     const header = document.createElement('h3');
     header.style.marginBottom = '1rem';
-    header.style.color = 'white';
-    header.innerHTML = `${getSeverityEmoji(severity)} ${severity.toUpperCase()} Severity (${vulnerabilities.length})`;
+    header.style.color = '#e6eef6';
+    header.innerHTML = `[${severity.toUpperCase()}] Severity (${vulnerabilities.length})`;
     section.appendChild(header);
     
     // Vulnerability cards
@@ -170,7 +170,6 @@ function createSeveritySection(severity, vulnerabilities) {
 }
 
 // Create vulnerability card
-// Create vulnerability card
 function createVulnerabilityCard(vuln) {
     const card = document.createElement('div');
     card.className = 'vulnerability-card';
@@ -180,10 +179,10 @@ function createVulnerabilityCard(vuln) {
     card.innerHTML = `
         <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem; gap: 1rem;">
             <div style="flex: 1;">
-                <h4 style="margin: 0 0 0.5rem 0; color: #333;">
+                <h4 style="margin: 0 0 0.5rem 0; color: #e6eef6;">
                     ${vuln.cve_id || 'Unknown CVE'}
                 </h4>
-                <div style="color: #666; font-size: 0.9rem;">
+                <div style="color: #b8c6d4; font-size: 0.9rem;">
                     <strong>Host:</strong> ${vuln.ip_address} ${vuln.hostname ? `(${vuln.hostname})` : ''}
                     ${vuln.port ? ` | <strong>Port:</strong> ${vuln.port}` : ''}
                     ${vuln.service ? ` | <strong>Service:</strong> ${vuln.service}` : ''}
@@ -201,32 +200,32 @@ function createVulnerabilityCard(vuln) {
                     title="Test exploitation with Metasploit"
                     style="white-space: nowrap;"
                 >
-                    🎯 Test Exploit
+                    TEST EXPLOIT
                 </button>
                 ` : ''}
             </div>
         </div>
         
         <div style="margin-bottom: 1rem;">
-            <strong style="color: #555;">Description:</strong>
-            <p style="margin: 0.5rem 0; color: #666;">${vuln.description || 'No description available'}</p>
+            <strong style="color: #e6eef6;">Description:</strong>
+            <p style="margin: 0.5rem 0; color: #b8c6d4;">${vuln.description || 'No description available'}</p>
         </div>
         
         ${vuln.remediation ? `
-            <div style="background: #f8f9fa; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                <strong style="color: #28a745;">💡 Remediation:</strong>
-                <p style="margin: 0.5rem 0 0 0; color: #666;">${vuln.remediation}</p>
+            <div style="background: #141c28; padding: 1rem; border-radius: 2px; margin-bottom: 1rem; border-left: 3px solid #00ff88;">
+                <strong style="color: #00ff88;">[FIX] Remediation:</strong>
+                <p style="margin: 0.5rem 0 0 0; color: #b8c6d4;">${vuln.remediation}</p>
             </div>
         ` : ''}
         
         ${vuln.references ? `
             <details style="margin-top: 1rem;">
-                <summary style="cursor: pointer; color: #667eea; font-weight: 500;">
-                    📚 References
+                <summary style="cursor: pointer; color: #00ff88; font-weight: 500;">
+                    [REF] References
                 </summary>
                 <div style="margin-top: 0.5rem; padding-left: 1rem;">
                     ${vuln.references.split(',').map(ref => 
-                        `<a href="${ref.trim()}" target="_blank" style="display: block; color: #667eea; margin: 0.25rem 0;">${ref.trim()}</a>`
+                        `<a href="${ref.trim()}" target="_blank" style="display: block; color: #00ff88; margin: 0.25rem 0;">${ref.trim()}</a>`
                     ).join('')}
                 </div>
             </details>
@@ -247,24 +246,14 @@ function getStatusClass(status) {
     return statusMap[status] || 'badge-info';
 }
 
-function getSeverityEmoji(severity) {
-    const emojiMap = {
-        'critical': '🔴',
-        'high': '🟠',
-        'medium': '🟡',
-        'low': '🟢'
-    };
-    return emojiMap[severity] || '⚪';
-}
-
 function getSeverityColor(severity) {
     const colorMap = {
-        'critical': '#dc3545',
-        'high': '#fd7e14',
-        'medium': '#ffc107',
-        'low': '#28a745'
+        'critical': '#ff3b4e',
+        'high': '#ffb020',
+        'medium': '#ffd04b',
+        'low': '#00ff88'
     };
-    return colorMap[severity.toLowerCase()] || '#6c757d';
+    return colorMap[severity.toLowerCase()] || '#6b7a8c';
 }
 
 function getSeverityBadgeClass(severity) {
@@ -306,7 +295,7 @@ async function generateReport(reportType) {
         // Show loading
         const btn = document.getElementById('download-btn');
         const originalText = btn.innerHTML;
-        btn.innerHTML = '⏳ Generating...';
+        btn.innerHTML = '>_ Generating...';
         btn.disabled = true;
         
         // Generate report
@@ -329,9 +318,9 @@ async function generateReport(reportType) {
             document.body.removeChild(link);
             
             // Show success message
-            alert(`✅ ${reportType.toUpperCase()} report downloaded successfully!`);
+            alert(`[OK] ${reportType.toUpperCase()} report downloaded successfully!`);
         } else {
-            alert(`❌ Error: ${data.error}`);
+            alert(`[FAIL] Error: ${data.error}`);
         }
         
         // Restore button
@@ -340,11 +329,11 @@ async function generateReport(reportType) {
         
     } catch (error) {
         console.error('Error generating report:', error);
-        alert('❌ Failed to generate report. Make sure the API server is running.');
+        alert('[FAIL] Failed to generate report. Make sure the API server is running.');
         
         // Restore button
         const btn = document.getElementById('download-btn');
-        btn.innerHTML = '📥 Download Report';
+        btn.innerHTML = '>_ Download Report';
         btn.disabled = false;
     }
 }
@@ -355,17 +344,17 @@ async function generateReport(reportType) {
 async function testExploit(vulnId, cveId) {
     // First confirmation with strong warnings
     const confirmed = confirm(
-        `⚠️ CRITICAL WARNING ⚠️\n\n` +
+        `[!] CRITICAL WARNING\n\n` +
         `You are about to attempt REAL EXPLOITATION of:\n` +
         `${cveId}\n\n` +
         `This will:\n` +
-        `✓ Execute actual exploit code against the target\n` +
-        `✓ Attempt to compromise the system\n` +
-        `✓ May cause system instability or crashes\n` +
-        `✓ All activity will be logged\n\n` +
+        `- Execute actual exploit code against the target\n` +
+        `- Attempt to compromise the system\n` +
+        `- May cause system instability or crashes\n` +
+        `- All activity will be logged\n\n` +
         `LEGAL REQUIREMENTS:\n` +
-        `✓ You MUST own this system, OR\n` +
-        `✓ Have WRITTEN authorization to test it\n\n` +
+        `- You MUST own this system, OR\n` +
+        `- Have WRITTEN authorization to test it\n\n` +
         `Unauthorized hacking is ILLEGAL and punishable by:\n` +
         `- Criminal prosecution\n` +
         `- Heavy fines\n` +
@@ -381,9 +370,9 @@ async function testExploit(vulnId, cveId) {
     const doubleConfirm = confirm(
         `FINAL CONFIRMATION\n\n` +
         `I confirm that:\n` +
-        `✓ I have authorization to test this system\n` +
-        `✓ I understand the legal implications\n` +
-        `✓ I accept full responsibility\n\n` +
+        `- I have authorization to test this system\n` +
+        `- I understand the legal implications\n` +
+        `- I accept full responsibility\n\n` +
         `Proceed with exploitation?`
     );
     
@@ -397,10 +386,10 @@ async function testExploit(vulnId, cveId) {
         loadingMsg.className = 'alert alert-info';
         loadingMsg.id = 'exploit-loading';
         loadingMsg.innerHTML = `
-            <strong>⏳ Exploitation in Progress...</strong>
-            <p>🔍 Searching Metasploit database for matching exploit module...</p>
-            <p>⚙️ Configuring target parameters and payload...</p>
-            <p>🚀 Executing exploit against target system...</p>
+            <strong>[..] Exploitation in Progress...</strong>
+            <p>[*] Searching Metasploit database for matching exploit module...</p>
+            <p>[*] Configuring target parameters and payload...</p>
+            <p>[*] Executing exploit against target system...</p>
             <p><small>This may take 30-60 seconds. Please wait...</small></p>
         `;
         
@@ -432,18 +421,18 @@ async function testExploit(vulnId, cveId) {
             // Success - exploitation worked!
             resultMsg.className = 'alert alert-success';
             resultMsg.innerHTML = `
-                <strong>✅ EXPLOITATION SUCCESSFUL!</strong>
+                <strong>[+] EXPLOITATION SUCCESSFUL!</strong>
                 <p style="margin: 0.5rem 0;"><strong>Session Created:</strong> #${result.session_id}</p>
                 <p style="margin: 0.5rem 0;"><strong>Session Type:</strong> ${result.session_type}</p>
                 <p style="margin: 0.5rem 0;"><strong>Exploit Used:</strong> ${result.exploit_used}</p>
                 <p style="margin: 0.5rem 0;"><strong>Message:</strong> ${result.message}</p>
-                <div style="margin-top: 1rem; padding: 1rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
-                    <strong>⚠️ What This Means:</strong>
+                <div style="margin-top: 1rem; padding: 1rem; background: rgba(255, 176, 32, 0.06); border-left: 4px solid #ffb020; border-radius: 2px;">
+                    <strong style="color: #ffb020;">[!] What This Means:</strong>
                     <p style="margin: 0.5rem 0 0 0;">You now have remote access to the target system. This proves the vulnerability is real and exploitable. Document this finding and close the session when done testing.</p>
                 </div>
                 <div style="margin-top: 1rem;">
                     <button onclick="viewSessions()" class="btn btn-primary btn-small">
-                        📋 View Active Sessions
+                        VIEW SESSIONS
                     </button>
                     <button onclick="document.getElementById('exploit-result').remove()" class="btn btn-secondary btn-small">
                         Close
@@ -454,7 +443,7 @@ async function testExploit(vulnId, cveId) {
             // Failed - exploitation didn't work
             resultMsg.className = 'alert alert-danger';
             resultMsg.innerHTML = `
-                <strong>❌ Exploitation Failed</strong>
+                <strong>[-] Exploitation Failed</strong>
                 <p style="margin: 0.5rem 0;"><strong>Reason:</strong> ${result.message || result.error}</p>
                 ${result.exploit_used ? `<p style="margin: 0.5rem 0;"><strong>Exploit Attempted:</strong> ${result.exploit_used}</p>` : ''}
                 <div style="margin: 1rem 0;">
@@ -467,8 +456,8 @@ async function testExploit(vulnId, cveId) {
                         <li>Network connectivity issues</li>
                     </ul>
                 </div>
-                <div style="margin-top: 1rem; padding: 1rem; background: #d4edda; border-left: 4px solid #28a745; border-radius: 4px;">
-                    <strong>✅ Good News:</strong>
+                <div style="margin-top: 1rem; padding: 1rem; background: rgba(0, 255, 136, 0.06); border-left: 4px solid #00ff88; border-radius: 2px;">
+                    <strong style="color: #00ff88;">[+] Good News:</strong>
                     <p style="margin: 0.5rem 0 0 0;">The target appears to be secure against this exploit. This is what you want to see in a security assessment!</p>
                 </div>
                 <div style="margin-top: 1rem;">
@@ -494,7 +483,7 @@ async function testExploit(vulnId, cveId) {
         const errorMsg = document.createElement('div');
         errorMsg.className = 'alert alert-danger';
         errorMsg.innerHTML = `
-            <strong>❌ Error</strong>
+            <strong>[FAIL] Error</strong>
             <p>Cannot connect to API server. Make sure:</p>
             <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
                 <li>Backend server is running (http://localhost:5000)</li>
@@ -568,7 +557,7 @@ function updatePorts(ports) {
         
         row.innerHTML = `
             <td>
-                <strong style="font-size: 1.2rem; color: #667eea;">${port.port}</strong>
+                <strong style="font-size: 1.2rem; color: #00ff88;">${port.port}</strong>
             </td>
             <td>
                 <span class="port-protocol">${port.protocol || 'tcp'}</span>
@@ -606,13 +595,13 @@ document.getElementById('toggle-ports-view').addEventListener('click', function(
         // Switch to cards
         table.style.display = 'none';
         cards.style.display = 'grid';
-        button.textContent = '📋 Switch to Table View';
+        button.textContent = '[+] TABLE VIEW';
         portsViewMode = 'cards';
     } else {
         // Switch to table
         table.style.display = 'block';
         cards.style.display = 'none';
-        button.textContent = '📊 Switch to Card View';
+        button.textContent = '[+] CARD VIEW';
         portsViewMode = 'table';
     }
 });
@@ -623,7 +612,7 @@ function createPortRow(port) {
     row.style.cursor = 'pointer';
     
     row.innerHTML = `
-        <td><strong style="font-size: 1.2rem; color: #667eea;">${port.port}</strong></td>
+        <td><strong style="font-size: 1.2rem; color: #00ff88;">${port.port}</strong></td>
         <td><span class="port-protocol">${port.protocol || 'tcp'}</span></td>
         <td><span class="port-state ${port.state}">${port.state || 'open'}</span></td>
         <td><strong>${port.service || 'unknown'}</strong></td>
@@ -643,10 +632,10 @@ function showPortDetails(port) {
     const modal = document.createElement('div');
     modal.className = 'modal-overlay';
     modal.innerHTML = `
-        <div class="modal-content" style="max-width: 600px; background: white; padding: 2rem; border-radius: 8px; position: relative;">
-            <button onclick="this.parentElement.parentElement.remove()" style="position: absolute; top: 1rem; right: 1rem; border: none; background: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+        <div class="modal-content" style="max-width: 600px; padding: 2rem; position: relative;">
+            <button onclick="this.parentElement.parentElement.remove()" style="position: absolute; top: 1rem; right: 1rem; border: none; background: none; font-size: 1.2rem; cursor: pointer; color: #00ff88;">[x]</button>
             
-            <h2 style="color: #667eea; margin-bottom: 1rem;">Port ${port.port} Details</h2>
+            <h2 style="color: #00ff88; margin-bottom: 1rem;">Port ${port.port} Details</h2>
             
             <div style="line-height: 2;">
                 <p><strong>Port Number:</strong> ${port.port}</p>
@@ -659,9 +648,9 @@ function showPortDetails(port) {
                 <p><strong>Host:</strong> ${port.ip_address} ${port.hostname ? `(${port.hostname})` : ''}</p>
             </div>
             
-            <div style="margin-top: 1.5rem; padding: 1rem; background: #f8f9fa; border-radius: 4px;">
+            <div style="margin-top: 1.5rem; padding: 1rem; background: #141c28; border-radius: 2px;">
                 <strong>Security Note:</strong>
-                <p style="margin-top: 0.5rem; color: #666; font-size: 0.9rem;">
+                <p style="margin-top: 0.5rem; color: #b8c6d4; font-size: 0.9rem;">
                     This port is currently accessible. Review if this service should be exposed and ensure it's properly secured.
                 </p>
             </div>
@@ -731,10 +720,10 @@ function showAttackSimulationDialog() {
     dialog.className = 'modal-overlay';
     dialog.innerHTML = `
         <div class="modal-content" style="max-width: 700px;">
-            <h2 style="color: #dc3545; margin-bottom: 1rem;">⚠️ Attack Simulation Warning</h2>
+            <h2 style="color: #ff3b4e; margin-bottom: 1rem;">[!] Attack Simulation Warning</h2>
             
-            <div style="background: #fff3cd; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                <strong>⚠️ CRITICAL WARNING</strong>
+            <div style="background: rgba(255, 176, 32, 0.06); padding: 1rem; border-radius: 2px; margin-bottom: 1rem; border-left: 3px solid #ffb020;">
+                <strong style="color: #ffb020;">[!] CRITICAL WARNING</strong>
                 <p style="margin: 0.5rem 0;">This will perform REAL attacks on the target system!</p>
                 <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
                     <li>SQL Injection attempts</li>
@@ -743,69 +732,69 @@ function showAttackSimulationDialog() {
                     <li>Bruteforce attempts</li>
                     <li>Service enumeration</li>
                 </ul>
-                <p style="margin: 0.5rem 0 0 0; color: #856404;">
+                <p style="margin: 0.5rem 0 0 0; color: #ffb020;">
                     <strong>ONLY use on systems you own or have written authorization to test!</strong>
                 </p>
             </div>
             
-            <h3 style="margin-top: 1.5rem;">Select Attack Types:</h3>
+            <h3 style="margin-top: 1.5rem; color: #e6eef6;">[*] Select Attack Types:</h3>
             
             <div style="margin: 1rem 0; max-height: 300px; overflow-y: auto;">
-                <label style="display: block; margin: 0.5rem 0; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; cursor: pointer;">
+                <label style="display: block; margin: 0.5rem 0; padding: 0.5rem; background: #141c28; border-radius: 2px; cursor: pointer;">
                     <input type="checkbox" value="port_scan_detection" checked> 
                     <strong>Port Scan Detection Test</strong>
-                    <span style="color: #666; font-size: 0.9rem; display: block; margin-left: 1.5rem;">Tests if rapid scanning triggers IDS/IPS</span>
+                    <span style="color: #b8c6d4; font-size: 0.9rem; display: block; margin-left: 1.5rem;">Tests if rapid scanning triggers IDS/IPS</span>
                 </label>
                 
-                <label style="display: block; margin: 0.5rem 0; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; cursor: pointer;">
+                <label style="display: block; margin: 0.5rem 0; padding: 0.5rem; background: #141c28; border-radius: 2px; cursor: pointer;">
                     <input type="checkbox" value="sql_injection"> 
                     <strong>SQL Injection Test</strong>
-                    <span style="color: #666; font-size: 0.9rem; display: block; margin-left: 1.5rem;">Tests database security with common SQL payloads</span>
+                    <span style="color: #b8c6d4; font-size: 0.9rem; display: block; margin-left: 1.5rem;">Tests database security with common SQL payloads</span>
                 </label>
                 
-                <label style="display: block; margin: 0.5rem 0; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; cursor: pointer;">
+                <label style="display: block; margin: 0.5rem 0; padding: 0.5rem; background: #141c28; border-radius: 2px; cursor: pointer;">
                     <input type="checkbox" value="xss"> 
                     <strong>Cross-Site Scripting (XSS)</strong>
-                    <span style="color: #666; font-size: 0.9rem; display: block; margin-left: 1.5rem;">Tests input sanitization with JavaScript payloads</span>
+                    <span style="color: #b8c6d4; font-size: 0.9rem; display: block; margin-left: 1.5rem;">Tests input sanitization with JavaScript payloads</span>
                 </label>
                 
-                <label style="display: block; margin: 0.5rem 0; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; cursor: pointer;">
+                <label style="display: block; margin: 0.5rem 0; padding: 0.5rem; background: #141c28; border-radius: 2px; cursor: pointer;">
                     <input type="checkbox" value="directory_traversal"> 
                     <strong>Directory Traversal</strong>
-                    <span style="color: #666; font-size: 0.9rem; display: block; margin-left: 1.5rem;">Tests file access controls</span>
+                    <span style="color: #b8c6d4; font-size: 0.9rem; display: block; margin-left: 1.5rem;">Tests file access controls</span>
                 </label>
                 
-                <label style="display: block; margin: 0.5rem 0; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; cursor: pointer;">
+                <label style="display: block; margin: 0.5rem 0; padding: 0.5rem; background: #141c28; border-radius: 2px; cursor: pointer;">
                     <input type="checkbox" value="http_methods"> 
                     <strong>HTTP Methods Test</strong>
-                    <span style="color: #666; font-size: 0.9rem; display: block; margin-left: 1.5rem;">Checks for dangerous HTTP methods (PUT, DELETE)</span>
+                    <span style="color: #b8c6d4; font-size: 0.9rem; display: block; margin-left: 1.5rem;">Checks for dangerous HTTP methods (PUT, DELETE)</span>
                 </label>
                 
-                <label style="display: block; margin: 0.5rem 0; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; cursor: pointer;">
+                <label style="display: block; margin: 0.5rem 0; padding: 0.5rem; background: #141c28; border-radius: 2px; cursor: pointer;">
                     <input type="checkbox" value="directory_bruteforce"> 
                     <strong>Directory Bruteforce</strong>
-                    <span style="color: #666; font-size: 0.9rem; display: block; margin-left: 1.5rem;">Discovers hidden directories</span>
+                    <span style="color: #b8c6d4; font-size: 0.9rem; display: block; margin-left: 1.5rem;">Discovers hidden directories</span>
                 </label>
                 
-                <label style="display: block; margin: 0.5rem 0; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; cursor: pointer;">
+                <label style="display: block; margin: 0.5rem 0; padding: 0.5rem; background: #141c28; border-radius: 2px; cursor: pointer;">
                     <input type="checkbox" value="ssh_bruteforce"> 
                     <strong>SSH Bruteforce Test</strong>
-                    <span style="color: #666; font-size: 0.9rem; display: block; margin-left: 1.5rem;">Tests SSH with common credentials</span>
+                    <span style="color: #b8c6d4; font-size: 0.9rem; display: block; margin-left: 1.5rem;">Tests SSH with common credentials</span>
                 </label>
                 
-                <label style="display: block; margin: 0.5rem 0; padding: 0.5rem; background: #f8f9fa; border-radius: 4px; cursor: pointer;">
+                <label style="display: block; margin: 0.5rem 0; padding: 0.5rem; background: #141c28; border-radius: 2px; cursor: pointer;">
                     <input type="checkbox" value="ftp_anonymous"> 
                     <strong>FTP Anonymous Access</strong>
-                    <span style="color: #666; font-size: 0.9rem; display: block; margin-left: 1.5rem;">Tests FTP configuration</span>
+                    <span style="color: #b8c6d4; font-size: 0.9rem; display: block; margin-left: 1.5rem;">Tests FTP configuration</span>
                 </label>
             </div>
             
             <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
                 <button onclick="window.startAttackSimulation(this.parentElement.parentElement.parentElement)" class="btn btn-danger" style="flex: 1;">
-                    ⚔️ Start Attack Simulation
+                    [&gt;] START ATTACK SIMULATION
                 </button>
                 <button onclick="this.parentElement.parentElement.parentElement.remove()" class="btn btn-secondary" style="flex: 1;">
-                    Cancel
+                    [x] CANCEL
                 </button>
             </div>
         </div>
@@ -825,7 +814,7 @@ function showAttackSimulationDialog() {
     `;
     
     document.body.appendChild(dialog);
-    console.log('✅ Attack simulation dialog displayed');
+    console.log(' Attack simulation dialog displayed');
 }
 
 async function startAttackSimulation(dialogElement) {
@@ -856,12 +845,12 @@ async function startAttackSimulation(dialogElement) {
     if (container) {
         container.innerHTML = `
             <div class="card" style="margin-bottom: 2rem;">
-                <div style="padding: 1.5rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 8px;">
-                    <h3 style="margin: 0 0 1rem 0; color: white;">⚔️ Attack Simulation in Progress</h3>
-                    <p style="margin: 0.5rem 0;">Running ${attackTypes.length} attack simulation(s)</p>
-                    <p style="margin: 0.5rem 0;">Scan ID: ${scanId}</p>
-                    <p style="margin: 0.5rem 0;">Attack types: ${attackTypes.join(', ')}</p>
-                    <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">⏱️ Checking for results...</p>
+                <div style="padding: 1.5rem; background: linear-gradient(135deg, #0e141d 0%, #1a2432 100%); border: 1px solid #ffb020; border-radius: 2px;">
+                    <h3 style="margin: 0 0 1rem 0; color: #ffb020;">[..] Attack Simulation in Progress</h3>
+                    <p style="margin: 0.5rem 0;">[*] Running ${attackTypes.length} attack simulation(s)</p>
+                    <p style="margin: 0.5rem 0;">[*] Scan ID: ${scanId}</p>
+                    <p style="margin: 0.5rem 0;">[*] Attack types: ${attackTypes.join(', ')}</p>
+                    <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">[*] Checking for results...</p>
                     <div class="spinner" style="margin-top: 1rem;"></div>
                 </div>
             </div>
@@ -880,15 +869,15 @@ async function startAttackSimulation(dialogElement) {
         const data = await response.json();
         
         if (response.ok) {
-            console.log('✅ Attack simulation started:', data);
+            console.log(' Attack simulation started:', data);
             
             if (container) {
                 container.innerHTML = `
                     <div class="card" style="margin-bottom: 2rem;">
-                        <div style="padding: 1.5rem; background: #d4edda; border-left: 4px solid #28a745; border-radius: 4px;">
-                            <h3 style="margin: 0 0 0.5rem 0; color: #155724;">✅ Attack Simulation Running</h3>
-                            <p style="margin: 0.5rem 0; color: #155724;">${data.message || 'Attack simulation is running'}</p>
-                            <p style="margin: 0.5rem 0 0 0; color: #155724;">⏳ Loading results...</p>
+                        <div style="padding: 1.5rem; background: rgba(0, 255, 136, 0.06); border-left: 4px solid #00ff88; border-radius: 2px;">
+                            <h3 style="margin: 0 0 0.5rem 0; color: #00ff88;">[+] Attack Simulation Running</h3>
+                            <p style="margin: 0.5rem 0; color: #00ff88;">${data.message || 'Attack simulation is running'}</p>
+                            <p style="margin: 0.5rem 0 0 0; color: #00ff88;">[*] Loading results...</p>
                         </div>
                     </div>
                 `;
@@ -903,14 +892,14 @@ async function startAttackSimulation(dialogElement) {
         }
         
     } catch (error) {
-        console.error('❌ Attack simulation error:', error);
+        console.error(' Attack simulation error:', error);
         
         if (container) {
             container.innerHTML = `
                 <div class="card" style="margin-bottom: 2rem;">
-                    <div style="padding: 1.5rem; background: #f8d7da; border-left: 4px solid #dc3545; border-radius: 4px;">
-                        <h3 style="margin: 0 0 0.5rem 0; color: #721c24;">❌ Attack Simulation Error</h3>
-                        <p style="margin: 0; color: #721c24;">${error.message}</p>
+                    <div style="padding: 1.5rem; background: rgba(255, 59, 78, 0.06); border-left: 4px solid #ff3b4e; border-radius: 2px;">
+                        <h3 style="margin: 0 0 0.5rem 0; color: #ff3b4e;">[FAIL] Attack Simulation Error</h3>
+                        <p style="margin: 0; color: #ff3b4e;">${error.message}</p>
                     </div>
                 </div>
             `;
@@ -932,7 +921,7 @@ function pollAttackResults(delay) {
             const data = await response.json();
             
             if (data.results && data.results.length > 0) {
-                console.log(`✅ Found ${data.results.length} attack results`);
+                console.log(` Found ${data.results.length} attack results`);
                 displayAttackResults(data.results);
                 pollAttempts = 0; // Reset for next time
             } else {
@@ -950,9 +939,9 @@ function pollAttackResults(delay) {
                     if (container) {
                         container.innerHTML = `
                             <div class="card" style="margin-bottom: 2rem;">
-                                <div style="padding: 1.5rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
-                                    <h3 style="margin: 0 0 0.5rem 0; color: #856404;">⚠️ Results Not Found</h3>
-                                    <p style="margin: 0; color: #856404;">Attack simulation may still be running. Refresh the page in a moment.</p>
+                                <div style="padding: 1.5rem; background: rgba(255, 176, 32, 0.06); border-left: 4px solid #ffb020; border-radius: 2px;">
+                                    <h3 style="margin: 0 0 0.5rem 0; color: #ffb020;">[!] Results Not Found</h3>
+                                    <p style="margin: 0; color: #ffb020;">Attack simulation may still be running. Refresh the page in a moment.</p>
                                 </div>
                             </div>
                         `;
@@ -980,33 +969,16 @@ async function loadAttackResults() {
         const data = await response.json();
         
         if (data.results && data.results.length > 0) {
-            console.log(`✅ Loaded ${data.results.length} attack results`);
+            console.log(` Loaded ${data.results.length} attack results`);
             displayAttackResults(data.results);
         } else {
             console.log('No attack results found yet');
         }
     } catch (error) {
-        console.error('❌ Error loading attack results:', error);
+        console.error(' Error loading attack results:', error);
     }
 }
 
-// async function loadAttackResults() {
-//     console.log(`Loading attack results for scan ${scanId}`);
-    
-//     try {
-//         const response = await fetch(`${API_URL}/scans/${scanId}/attack-results`);
-//         const data = await response.json();
-        
-//         if (data.results && data.results.length > 0) {
-//             console.log(`✅ Loaded ${data.results.length} attack results`);
-//             displayAttackResults(data.results);
-//         } else {
-//             console.log('No attack results found yet');
-//         }
-//     } catch (error) {
-//         console.error('❌ Error loading attack results:', error);
-//     }
-// }
 
 async function downloadAttackReport() {
     console.log(`Generating attack report PDF for scan ${scanId}`);
@@ -1019,19 +991,19 @@ async function downloadAttackReport() {
         const data = await response.json();
         
         if (response.ok && data.filename) {
-            console.log(`✅ Attack report generated: ${data.filename}`);
+            console.log(` Attack report generated: ${data.filename}`);
             
             // Download the report
             const downloadUrl = `${API_URL}/reports/${data.filename}`;
             window.location.href = downloadUrl;
             
             // Show success message
-            alert('✅ Attack report PDF generated successfully!');
+            alert('[OK] Attack report PDF generated successfully!');
         } else {
             throw new Error(data.error || 'Failed to generate report');
         }
     } catch (error) {
-        console.error(`❌ Error generating attack report:`, error);
+        console.error(` Error generating attack report:`, error);
         alert(`Error generating attack report:\n\n${error.message}`);
     }
 }
@@ -1067,11 +1039,11 @@ async function downloadUnifiedReport() {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
 
-        alert('Unified PDF report downloaded successfully!');
+        alert('[OK] Unified PDF report downloaded successfully!');
 
     } catch (error) {
         console.error('Report error:', error);
-        alert(`Error: ${error.message}`);
+        alert(`[FAIL] Error: ${error.message}`);
     } finally {
         btn.textContent = orig;
         btn.disabled = false;
@@ -1098,26 +1070,12 @@ function displayAttackResults(results) {
     container.style.display = 'block';
     container.scrollIntoView({ behavior: 'smooth', block: 'start' });
     
-    // let html = `
-    //     <div style="display: flex; justify-content: space-between; align-items: center; margin: 2rem 0 1rem 0;">
-    //         <h3 style="margin: 0; color: #333;">📊 Attack Simulation Results (${results.length} tests)</h3>
-    //         <div style="display: flex; gap: 0.5rem;">
-    //             <button onclick="downloadAttackReport()" class="btn btn-primary">
-    //                 📥 Download PDF Report
-    //             </button>
-    //             <button onclick="deleteAllAttackResults()" class="btn btn-danger">
-    //                 🗑️ Delete All Results
-    //             </button>
-    //         </div>
-    //     </div>
-    // `;
-    
     let html = '';
 
         html += `
             <div style="display:flex; justify-content:space-between; align-items:center; margin:2rem 0 1rem 0;">
-                <h3 style="margin:0; color:#333;">
-                    Attack Simulation Results (${results.length} tests)
+                <h3 style="margin:0; color:#e6eef6;">
+                    [*] Attack Simulation Results (${results.length} tests)
                 </h3>
                 <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
                     <button onclick="downloadUnifiedReport()" class="btn btn-primary">
@@ -1156,7 +1114,7 @@ function displayAttackResults(results) {
                 vulnerableCount++;
             }
         } catch (e) {
-            console.error('⚠️ Error parsing result:', e, result);
+            console.error(' Error parsing result:', e, result);
             validResults.push({
                 ...result,
                 parsedData: { 
@@ -1172,24 +1130,24 @@ function displayAttackResults(results) {
     
     // Add summary card
     html += `
-        <div class="card" style="margin-bottom: 2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+        <div class="card" style="margin-bottom: 2rem; background: linear-gradient(135deg, #0e141d 0%, #1a2432 100%);">
             <div style="padding: 1.5rem;">
-                <h3 style="margin: 0 0 1rem 0; color: white;">Security Assessment Summary</h3>
+                <h3 style="margin: 0 0 1rem 0; color: #00ff88; text-transform: uppercase; letter-spacing: 1px;">Security Assessment Summary</h3>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem;">
                     <div style="text-align: center;">
-                        <div style="font-size: 2rem; font-weight: bold;">${validResults.length}</div>
+                        <div style="font-size: 2rem; font-weight: bold; color: #e6eef6;">${validResults.length}</div>
                         <div style="opacity: 0.9;">Total Tests</div>
                     </div>
                     <div style="text-align: center;">
-                        <div style="font-size: 2rem; font-weight: bold; color: #ffc107;">${vulnerableCount}</div>
+                        <div style="font-size: 2rem; font-weight: bold; color: #ff3b4e;">${vulnerableCount}</div>
                         <div style="opacity: 0.9;">Vulnerable</div>
                     </div>
                     <div style="text-align: center;">
-                        <div style="font-size: 2rem; font-weight: bold; color: #4caf50;">${secureCount}</div>
+                        <div style="font-size: 2rem; font-weight: bold; color: #00ff88;">${secureCount}</div>
                         <div style="opacity: 0.9;">Secure</div>
                     </div>
                     <div style="text-align: center;">
-                        <div style="font-size: 2rem; font-weight: bold;">${securityScore}%</div>
+                        <div style="font-size: 2rem; font-weight: bold; color: #ffb020;">${securityScore}%</div>
                         <div style="opacity: 0.9;">Security Score</div>
                     </div>
                 </div>
@@ -1200,58 +1158,58 @@ function displayAttackResults(results) {
     // Display each result
     validResults.forEach((result, index) => {
         const resultData = result.parsedData;
-        const borderColor = result.vulnerable ? '#dc3545' : '#28a745';
-        const bgColor = result.vulnerable ? '#f8d7da' : '#d4edda';
-        const textColor = result.vulnerable ? '#721c24' : '#155724';
-        const icon = result.vulnerable ? '❌' : '✅';
+        const borderColor = result.vulnerable ? '#ff3b4e' : '#00ff88';
+        const bgColor = result.vulnerable ? 'rgba(255, 59, 78, 0.06)' : 'rgba(0, 255, 136, 0.06)';
+        const textColor = result.vulnerable ? '#ff3b4e' : '#00ff88';
+        const icon = result.vulnerable ? '[!]' : '[+]';
         
         html += `
             <div class="card" style="margin-bottom: 1.5rem; border-left: 4px solid ${borderColor};">
                 <div style="padding: 1.5rem;">
                     <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-                        <h4 style="margin: 0; color: #333;">${icon} ${result.attack_type}</h4>
+                        <h4 style="margin: 0; color: #e6eef6;">${icon} ${result.attack_type}</h4>
                         <div style="display: flex; gap: 0.5rem; align-items: center;">
                             ${result.severity ? `<span class="severity-badge ${result.severity.toLowerCase()}">${result.severity}</span>` : ''}
                             <button onclick="deleteAttackResult(${result.id})" class="btn btn-danger btn-small" title="Delete this result">
-                                Delete
+                                DELETE
                             </button>
                         </div>
                     </div>
                     
-                    <div style="background: ${bgColor}; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;">
+                    <div style="background: ${bgColor}; padding: 0.75rem; border-radius: 2px; margin-bottom: 1rem;">
                         <p style="margin: 0; color: ${textColor}; font-weight: 600;">
-                            ${result.vulnerable ? '❌ VULNERABLE - Security Issue Detected' : '✅ SECURE - No Issues Found'}
+                            ${result.vulnerable ? '[!] VULNERABLE - Security Issue Detected' : '[+] SECURE - No Issues Found'}
                         </p>
                     </div>
                     
                     <div style="margin-bottom: 1rem;">
-                        <p style="margin: 0.5rem 0;"><strong>🎯 Target:</strong> ${resultData.target || 'N/A'}</p>
-                        <p style="margin: 0.5rem 0;"><strong>🕐 Timestamp:</strong> ${new Date(result.timestamp).toLocaleString()}</p>
-                        ${resultData.verdict ? `<p style="margin: 0.5rem 0;"><strong>📋 Verdict:</strong> ${resultData.verdict}</p>` : ''}
-                        ${resultData.scan_duration ? `<p style="margin: 0.5rem 0;"><strong>⏱️ Duration:</strong> ${resultData.scan_duration}</p>` : ''}
-                        ${resultData.ports_scanned ? `<p style="margin: 0.5rem 0;"><strong>🔌 Ports Scanned:</strong> ${resultData.ports_scanned}</p>` : ''}
-                        ${resultData.scan_rate ? `<p style="margin: 0.5rem 0;"><strong>⚡ Scan Rate:</strong> ${resultData.scan_rate}</p>` : ''}
+                        <p style="margin: 0.5rem 0;"><strong>[*] Target:</strong> ${resultData.target || 'N/A'}</p>
+                        <p style="margin: 0.5rem 0;"><strong>[*] Timestamp:</strong> ${new Date(result.timestamp).toLocaleString()}</p>
+                        ${resultData.verdict ? `<p style="margin: 0.5rem 0;"><strong>[*] Verdict:</strong> ${resultData.verdict}</p>` : ''}
+                        ${resultData.scan_duration ? `<p style="margin: 0.5rem 0;"><strong>[*] Duration:</strong> ${resultData.scan_duration}</p>` : ''}
+                        ${resultData.ports_scanned ? `<p style="margin: 0.5rem 0;"><strong>[*] Ports Scanned:</strong> ${resultData.ports_scanned}</p>` : ''}
+                        ${resultData.scan_rate ? `<p style="margin: 0.5rem 0;"><strong>[*] Scan Rate:</strong> ${resultData.scan_rate}</p>` : ''}
                     </div>
                     
                     ${resultData.recommendation ? `
-                        <div style="background: #e7f3ff; padding: 0.75rem; border-left: 3px solid #2196f3; margin-top: 1rem; border-radius: 4px;">
-                            <strong>💡 Recommendation:</strong>
+                        <div style="background: rgba(0, 212, 255, 0.06); padding: 0.75rem; border-left: 3px solid #00d4ff; margin-top: 1rem; border-radius: 2px;">
+                            <strong>[+] Recommendation:</strong>
                             <p style="margin: 0.5rem 0 0 0;">${resultData.recommendation}</p>
                         </div>
                     ` : ''}
                     
                     ${resultData.error ? `
-                        <div style="background: #fff3cd; padding: 0.75rem; border-left: 3px solid #ffc107; margin-top: 1rem; border-radius: 4px;">
-                            <strong>⚠️ Error:</strong>
-                            <p style="margin: 0.5rem 0 0 0; color: #856404;">${resultData.error}</p>
+                        <div style="background: rgba(255, 176, 32, 0.06); padding: 0.75rem; border-left: 3px solid #ffb020; margin-top: 1rem; border-radius: 2px;">
+                            <strong style="color: #ffb020;">[!] Error:</strong>
+                            <p style="margin: 0.5rem 0 0 0; color: #ffb020;">${resultData.error}</p>
                         </div>
                     ` : ''}
                     
                     <details style="margin-top: 1rem;">
-                        <summary style="cursor: pointer; color: #667eea; font-weight: 600; padding: 0.5rem 0;">
-                            📋 View Full Technical Details
+                        <summary style="cursor: pointer; color: #00ff88; font-weight: 600; padding: 0.5rem 0;">
+                            [~] View Full Technical Details
                         </summary>
-                        <pre style="background: #f8f9fa; padding: 1rem; margin-top: 0.5rem; overflow-x: auto; border-radius: 4px; font-size: 0.85rem; border: 1px solid #dee2e6;">${JSON.stringify(resultData, null, 2)}</pre>
+                        <pre style="background: #141c28; padding: 1rem; margin-top: 0.5rem; overflow-x: auto; border-radius: 2px; font-size: 0.85rem; border: 1px solid #2c3d52; color: #b8c6d4;">${JSON.stringify(resultData, null, 2)}</pre>
                     </details>
                 </div>
             </div>
@@ -1259,14 +1217,14 @@ function displayAttackResults(results) {
     });
     
     container.innerHTML = html;
-    console.log('✅ Attack results displayed successfully');
+    console.log(' Attack results displayed successfully');
 }
 
 // Delete all attack results for current scan
 async function deleteAllAttackResults() {
     // Confirmation dialog
     const confirmed = confirm(
-        '⚠️ Delete All Attack Results?\n\n' +
+        '[!] Delete All Attack Results?\n\n' +
         'This will permanently delete ALL attack simulation results for this scan.\n\n' +
         'This action cannot be undone!\n\n' +
         'Are you sure you want to continue?'
@@ -1286,7 +1244,7 @@ async function deleteAllAttackResults() {
         const data = await response.json();
         
         if (response.ok) {
-            console.log(`✅ Deleted ${data.deleted_count} attack results`);
+            console.log(` Deleted ${data.deleted_count} attack results`);
             
             // Hide results container
             const container = document.getElementById('attack-results-container');
@@ -1300,9 +1258,9 @@ async function deleteAllAttackResults() {
             if (simContainer) {
                 simContainer.innerHTML = `
                     <div class="card" style="margin-bottom: 2rem;">
-                        <div style="padding: 1.5rem; background: #d4edda; border-left: 4px solid #28a745; border-radius: 4px;">
-                            <h3 style="margin: 0 0 0.5rem 0; color: #155724;">✅ Results Deleted</h3>
-                            <p style="margin: 0; color: #155724;">
+                        <div style="padding: 1.5rem; background: rgba(0, 255, 136, 0.06); border-left: 4px solid #00ff88; border-radius: 2px;">
+                            <h3 style="margin: 0 0 0.5rem 0; color: #00ff88;">[+] Results Deleted</h3>
+                            <p style="margin: 0; color: #00ff88;">
                                 Successfully deleted ${data.deleted_count} attack simulation result(s).
                             </p>
                         </div>
@@ -1311,15 +1269,15 @@ async function deleteAllAttackResults() {
             }
             
             // Show alert
-            alert(`✅ Successfully deleted ${data.deleted_count} attack result(s)`);
+            alert(`[OK] Successfully deleted ${data.deleted_count} attack result(s)`);
             
         } else {
             throw new Error(data.error || 'Failed to delete attack results');
         }
         
     } catch (error) {
-        console.error('❌ Error deleting attack results:', error);
-        alert(`❌ Error deleting attack results:\n\n${error.message}`);
+        console.error(' Error deleting attack results:', error);
+        alert(`[FAIL] Error deleting attack results:\n\n${error.message}`);
     }
 }
 
@@ -1327,7 +1285,7 @@ async function deleteAllAttackResults() {
 async function deleteAttackResult(resultId) {
     // Confirmation dialog
     const confirmed = confirm(
-        '⚠️ Delete This Attack Result?\n\n' +
+        '[!] Delete This Attack Result?\n\n' +
         'This will permanently delete this attack simulation result.\n\n' +
         'Are you sure?'
     );
@@ -1346,21 +1304,21 @@ async function deleteAttackResult(resultId) {
         const data = await response.json();
         
         if (response.ok) {
-            console.log(`✅ Deleted attack result ${resultId}`);
+            console.log(` Deleted attack result ${resultId}`);
             
             // Reload attack results to refresh the display
             await loadAttackResults();
             
             // Show success message
-            alert('✅ Attack result deleted successfully');
+            alert('[OK] Attack result deleted successfully');
             
         } else {
             throw new Error(data.error || 'Failed to delete attack result');
         }
         
     } catch (error) {
-        console.error('❌ Error deleting attack result:', error);
-        alert(`❌ Error deleting attack result:\n\n${error.message}`);
+        console.error(' Error deleting attack result:', error);
+        alert(`[FAIL] Error deleting attack result:\n\n${error.message}`);
     }
 }
 
@@ -1373,10 +1331,10 @@ window.deleteAttackResult = deleteAttackResult;
 document.addEventListener('DOMContentLoaded', () => {
     const simulateBtn = document.getElementById('simulate-attacks-btn');
     if (simulateBtn) {
-        console.log('✅ Attack simulation button found, adding listener');
+        console.log(' Attack simulation button found, adding listener');
         simulateBtn.addEventListener('click', showAttackSimulationDialog);
     } else {
-        console.warn('⚠️ Attack simulation button NOT found in DOM');
+        console.warn(' Attack simulation button NOT found in DOM');
     }
 });
 
@@ -1417,24 +1375,24 @@ function showHashcatDialog() {
     dialog.className = 'modal-overlay';
     dialog.innerHTML = `
         <div class="modal-content" style="max-width: 700px;">
-            <h2 style="color: #dc3545; margin-bottom: 1rem;">🔓 Password Hash Cracking</h2>
+            <h2 style="color: #ff3b4e; margin-bottom: 1rem;">[HASHCAT] Password Hash Cracking</h2>
             
-            <div style="color: #dc3535; background: #fff3cd; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                <strong>⚠️ LEGAL WARNING</strong>
+            <div style="color: #ff3b4e; background: rgba(255, 176, 32, 0.06); padding: 1rem; border-left: 3px solid #ffb020; border-radius: 2px; margin-bottom: 1rem;">
+                <strong>[!] LEGAL WARNING</strong>
                 <p style="margin: 0.5rem 0;">This will attempt to crack password hashes using GPU acceleration!</p>
-                <p style="margin: 0.5rem 0 0 0; color: #856404;">
+                <p style="margin: 0.5rem 0 0 0; color: #ffb020;">
                     <strong>Only crack hashes from authorized security assessments!</strong>
                 </p>
             </div>
             
-            <h3 style="color: #dc3535; margin-top: 1.5rem;">Password Hashes:</h3>
-            <h4 style="color: #dc3535; font-size: 0.9rem; margin: 0.5rem 0;">Enter one hash per line</h4>
+            <h3 style="color: #ff3b4e; margin-top: 1.5rem;">[+] Password Hashes:</h3>
+            <h4 style="color: #ff3b4e; font-size: 0.9rem; margin: 0.5rem 0;">Enter one hash per line</h4>
             <textarea id="hashcat-hashes" class="form-input" rows="5" 
                       placeholder="5f4dcc3b5aa765d61d8327deb882cf99&#10;e10adc3949ba59abbe56e057f20f883e&#10;098f6bcd4621d373cade4e832627b4f6"
-                      style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 1rem; font-family: monospace; font-size: 0.9rem;"></textarea>
+                      style="width: 100%; padding: 0.75rem; border: 1px solid #2c3d52; border-radius: 2px; margin-bottom: 1rem; font-family: monospace; font-size: 0.9rem;"></textarea>
             
-            <h3 style="color: #dc3535; margin-top: 1rem;">Hash Type:</h3>
-            <select id="hashcat-type" class="form-input" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 1rem;">
+            <h3 style="color: #ff3b4e; margin-top: 1rem;">[*] Hash Type:</h3>
+            <select id="hashcat-type" class="form-input" style="width: 100%; padding: 0.75rem; border: 1px solid #2c3d52; border-radius: 2px; margin-bottom: 1rem;">
                 <option value="0">MD5</option>
                 <option value="100">SHA1</option>
                 <option value="1400">SHA256</option>
@@ -1445,26 +1403,26 @@ function showHashcatDialog() {
                 <option value="1800">sha512crypt (Unix)</option>
             </select>
             
-            <h3 style="color: #dc3535; margin-top: 1rem;">Attack Mode:</h3>
-            <select id="hashcat-attack" class="form-input" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 1rem;">
+            <h3 style="color: #ff3b4e; margin-top: 1rem;">[*] Attack Mode:</h3>
+            <select id="hashcat-attack" class="form-input" style="width: 100%; padding: 0.75rem; border: 1px solid #2c3d52; border-radius: 2px; margin-bottom: 1rem;">
                 <option value="0">Dictionary Attack (Fast, common passwords)</option>
                 <option value="3">Bruteforce (Slow, tries all combinations)</option>
             </select>
             
-            <div style="background: #e7f3ff; padding: 1rem; border-radius: 4px; margin: 1rem 0;">
-                <strong>ℹ️ Note:</strong>
+            <div style="background: rgba(0, 212, 255, 0.06); padding: 1rem; border-radius: 2px; margin: 1rem 0;">
+                <strong>NOTE:</strong>
                 <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem;">
                     Dictionary attack uses a wordlist of common passwords (~100 passwords).
                     Bruteforce is much slower but tries all possible combinations.
                 </p>
             </div>
             
-            <div style="color: #dc3535;margin-top: 1.5rem; display: flex; gap: 1rem;">
+            <div style="color: #ff3b4e; margin-top: 1.5rem; display: flex; gap: 1rem;">
                 <button onclick="window.startHashcatCrack(this.parentElement.parentElement.parentElement)" class="btn btn-danger" style="flex: 1;">
-                    💥 Start Cracking
+                    [>] START CRACKING
                 </button>
                 <button onclick="this.parentElement.parentElement.parentElement.remove()" class="btn btn-secondary" style="flex: 1;">
-                    Cancel
+                    [x] CANCEL
                 </button>
             </div>
         </div>
@@ -1485,7 +1443,7 @@ function showHashcatDialog() {
     `;
     
     document.body.appendChild(dialog);
-    console.log('✅ Hashcat dialog displayed');
+    console.log(' Hashcat dialog displayed');
 }
 
 async function startHashcatCrack(dialogElement) {
@@ -1517,19 +1475,19 @@ async function startHashcatCrack(dialogElement) {
     }
     
     // Close dialog
-    dialogElement.remove();
+    if (dialogElement) dialogElement.remove();
     
     // Show progress
     const container = document.getElementById('hashcat-container');
     if (container) {
         container.innerHTML = `
             <div class="card" style="margin-bottom: 2rem;">
-                <div style="padding: 1.5rem; background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%); color: white; border-radius: 8px;">
-                    <h3 style="margin: 0 0 1rem 0; color: white;">🔓 Hashcat Cracking in Progress</h3>
-                    <p style="margin: 0.5rem 0;">Hashes: ${hashes.length}</p>
-                    <p style="margin: 0.5rem 0;">Hash Type: ${getHashTypeName(hashType)}</p>
-                    <p style="margin: 0.5rem 0;">Attack Mode: ${attackMode === 0 ? 'Dictionary' : 'Bruteforce'}</p>
-                    <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">⏱️ This may take 1-5 minutes...</p>
+                <div style="padding: 1.5rem; background: linear-gradient(135deg, #0e141d 0%, #1a2432 100%); border-radius: 2px;">
+                    <h3 style="margin: 0 0 1rem 0; color: #00ff88;">[>] Hashcat Cracking in Progress</h3>
+                    <p style="margin: 0.5rem 0;">[*] Hashes: ${hashes.length}</p>
+                    <p style="margin: 0.5rem 0;">[*] Hash Type: ${getHashTypeName(hashType)}</p>
+                    <p style="margin: 0.5rem 0;">[*] Attack Mode: ${attackMode === 0 ? 'Dictionary' : 'Bruteforce'}</p>
+                    <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">[*] This may take 1-5 minutes...</p>
                     <div class="spinner" style="margin-top: 1rem;"></div>
                 </div>
             </div>
@@ -1551,15 +1509,15 @@ async function startHashcatCrack(dialogElement) {
         const data = await response.json();
         
         if (response.ok) {
-            console.log('✅ Hashcat cracking started:', data);
+            console.log(' Hashcat cracking started:', data);
             
             if (container) {
                 container.innerHTML = `
                     <div class="card" style="margin-bottom: 2rem;">
-                        <div style="padding: 1.5rem; background: #d4edda; border-left: 4px solid #28a745; border-radius: 4px;">
-                            <h3 style="margin: 0 0 0.5rem 0; color: #155724;">✅ Hashcat Cracking Started</h3>
-                            <p style="margin: 0.5rem 0; color: #155724;">${data.message || 'Cracking job is running in background'}</p>
-                            <p style="margin: 0.5rem 0 0 0; color: #155724;">⏳ Checking for results every 10 seconds...</p>
+                        <div style="padding: 1.5rem; background: rgba(0, 255, 136, 0.06); border-left: 4px solid #00ff88; border-radius: 2px;">
+                            <h3 style="margin: 0 0 0.5rem 0; color: #00ff88;">[+] Hashcat Cracking Started</h3>
+                            <p style="margin: 0.5rem 0; color: #00ff88;">[*] ${data.message || 'Cracking job is running in background'}</p>
+                            <p style="margin: 0.5rem 0 0 0; color: #00ff88;">[*] Checking for results every 10 seconds...</p>
                         </div>
                     </div>
                 `;
@@ -1573,14 +1531,14 @@ async function startHashcatCrack(dialogElement) {
         }
         
     } catch (error) {
-        console.error('❌ Hashcat error:', error);
+        console.error(' Hashcat error:', error);
         
         if (container) {
             container.innerHTML = `
                 <div class="card" style="margin-bottom: 2rem;">
-                    <div style="padding: 1.5rem; background: #f8d7da; border-left: 4px solid #dc3545; border-radius: 4px;">
-                        <h3 style="margin: 0 0 0.5rem 0; color: #721c24;">❌ Hashcat Error</h3>
-                        <p style="margin: 0; color: #721c24;">${error.message}</p>
+                    <div style="padding: 1.5rem; background: rgba(255, 59, 78, 0.06); border-left: 4px solid #ff3b4e; border-radius: 2px;">
+                        <h3 style="margin: 0 0 0.5rem 0; color: #ff3b4e;">[-] Hashcat Error</h3>
+                        <p style="margin: 0; color: #ff3b4e;">${error.message}</p>
                     </div>
                 </div>
             `;
@@ -1661,7 +1619,7 @@ function pollHashcatResults() {
                 const container = document.getElementById('hashcat-container');
                 if (container) {
                     container.innerHTML = `
-                        <div style="padding:1rem; background:#fff3cd; border-radius:4px;">
+                        <div style="padding:1rem; background:rgba(255, 176, 32, 0.06); border-left: 3px solid #ffb020; border-radius:2px;">
                             <strong>Hashcat taking longer than expected.</strong>
                             <button onclick="loadHashcatResults()" 
                                     style="margin-left:10px; padding:5px 10px; cursor:pointer;">
@@ -1690,7 +1648,7 @@ function displayHashcatResults(results) {
     }
     
     if (!results || results.length === 0) {
-        container.innerHTML = '<p style="color: #666;">No password cracking jobs run yet.</p>';
+        container.innerHTML = '<p style="color: #b8c6d4;">No password cracking jobs run yet.</p>';
         return;
     }
     
@@ -1711,11 +1669,11 @@ function displayHashcatResults(results) {
         const success = job.status === 'success' && crackedHashes.length > 0;
         
         html += `
-        <div style="border: 1px solid ${success ? '#28a745' : '#dc3545'}; 
-                    border-radius: 8px; padding: 15px; margin: 10px 0;
-                    background: ${success ? '#f0fff4' : '#fff5f5'};">
+        <div style="border: 1px solid ${success ? '#00ff88' : '#ff3b4e'}; 
+                    border-radius: 2px; padding: 15px; margin: 10px 0;
+                    background: ${success ? 'rgba(0, 255, 136, 0.06)' : 'rgba(255, 59, 78, 0.06)'};">
             
-            <h4 style="margin: 0 0 10px 0; color: ${success ? '#28a745' : '#dc3545'};">
+            <h4 style="margin: 0 0 10px 0; color: ${success ? '#00ff88' : '#ff3b4e'};">
                 ${success ? '[OK]' : '[FAIL]'} Password Cracking Job #${index + 1}
             </h4>
             
@@ -1734,7 +1692,7 @@ function displayHashcatResults(results) {
                 </tr>
                 <tr>
                     <td style="padding: 4px 8px; font-weight: bold;">Cracked:</td>
-                    <td style="padding: 4px 8px; color: ${success ? '#28a745' : '#dc3545'}; font-weight: bold;">
+                    <td style="padding: 4px 8px; color: ${success ? '#00ff88' : '#ff3b4e'}; font-weight: bold;">
                         ${job.cracked_count || 0} / ${job.hash_count || 0}
                     </td>
                 </tr>
@@ -1755,29 +1713,29 @@ function displayHashcatResults(results) {
             
             ${crackedHashes.length > 0 ? `
             <div style="margin-top: 15px; padding: 10px; 
-                        background: #d4edda; border-radius: 5px; border: 1px solid #28a745;">
-                <h5 style="margin: 0 0 10px 0; color: #155724;">
+                        background: rgba(0, 255, 136, 0.06); border-radius: 5px; border: 1px solid #00ff88;">
+                <h5 style="margin: 0 0 10px 0; color: #00ff88;">
                     [OK] Cracked Passwords (${crackedHashes.length}):
                 </h5>
-                <table style="width: 100%; border-collapse: collapse; font-family: monospace;">
-                    <tr style="background: #155724; color: white;">
+                <table style="width: 100%; border-collapse: collapse; font-family: monospace; border: 1px solid #2c3d52;">
+                    <tr style="background: #0e141d; color: #00ff88;">
                         <th style="padding: 6px 10px; text-align: left;">Hash</th>
                         <th style="padding: 6px 10px; text-align: left;">Password</th>
                     </tr>
                     ${crackedHashes.map((h, i) => `
-                    <tr style="background: ${i % 2 === 0 ? '#f8fff9' : 'white'};">
-                        <td style="padding: 6px 10px; font-size: 12px; color: #333;">
+                    <tr style="background: ${i % 2 === 0 ? '#10161f' : '#141c28'};">
+                        <td style="padding: 6px 10px; font-size: 12px; color: #e6eef6;">
                             ${h.hash || 'N/A'}
                         </td>
-                        <td style="padding: 6px 10px; font-weight: bold; color: #28a745; font-size: 14px;">
+                        <td style="padding: 6px 10px; font-weight: bold; color: #00ff88; font-size: 14px;">
                             ${h.password || 'N/A'}
                         </td>
                     </tr>`).join('')}
                 </table>
             </div>` : `
             <div style="margin-top: 10px; padding: 10px; 
-                        background: #f8d7da; border-radius: 5px;">
-                <p style="margin: 0; color: #721c24;">
+                        background: rgba(255, 59, 78, 0.06); border-radius: 2px;">
+                <p style="margin: 0; color: #ff3b4e;">
                     No passwords cracked. Try a larger wordlist.
                 </p>
             </div>`}
@@ -1802,22 +1760,22 @@ function showSQLMapDialog() {
     dialog.className = 'modal-overlay';
     dialog.innerHTML = `
         <div class="modal-content" style="max-width: 700px;">
-            <h2 style="color: #dc3545; margin-bottom: 1rem;">🗡️ SQLMap Injection Test</h2>
+            <h2 style="color: #ff3b4e; margin-bottom: 1rem;">[SQLMAP] SQL Injection Test</h2>
             
-            <div style="background: #a38e48; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                <strong>⚠️ LEGAL WARNING</strong>
+            <div style="background: rgba(255, 176, 32, 0.08); border-left: 3px solid #ffb020; padding: 1rem; border-radius: 2px; margin-bottom: 1rem;">
+                <strong>[!] LEGAL WARNING</strong>
                 <p style="margin: 0.5rem 0;">This will perform REAL SQL injection attacks on the target!</p>
-                <p style="margin: 0.5rem 0 0 0; color: #856404;">
+                <p style="margin: 0.5rem 0 0 0; color: #ffb020;">
                     <strong>ONLY use on systems you own or have written authorization to test!</strong>
                 </p>
             </div>
             
-            <h3 style="color: #dc3535; margin-top: 1.5rem;">Target URL:</h3>
+            <h3 style="color: #ff3b4e; margin-top: 1.5rem;">[*] Target URL:</h3>
             <input type="text" id="sqlmap-url" class="form-input" placeholder="http://target.com/page?id=1" 
-                   style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 1rem;">
+                   style="width: 100%; padding: 0.75rem; border: 1px solid #2c3d52; border-radius: 2px; margin-bottom: 1rem;">
             
-            <h3 style="color: #dc3535; margin-top: 1rem;">Test Level:</h3>
-            <select id="sqlmap-level" class="form-input" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 1rem;">
+            <h3 style="color: #ff3b4e; margin-top: 1rem;">[*] Test Level:</h3>
+            <select id="sqlmap-level" class="form-input" style="width: 100%; padding: 0.75rem; border: 1px solid #2c3d52; border-radius: 2px; margin-bottom: 1rem;">
                 <option value="1">Level 1 - Fast (Default tests)</option>
                 <option value="2">Level 2 - Medium (More payloads)</option>
                 <option value="3">Level 3 - Thorough (Extensive tests)</option>
@@ -1825,35 +1783,35 @@ function showSQLMapDialog() {
                 <option value="5">Level 5 - Maximum (Every possible test)</option>
             </select>
             
-            <h3 style="color: #dc3535; margin-top: 1rem;">Risk Level:</h3>
-            <select id="sqlmap-risk" class="form-input" style="width: 100%; padding: 0.75rem; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 1rem;">
+            <h3 style="color: #ff3b4e; margin-top: 1rem;">[*] Risk Level:</h3>
+            <select id="sqlmap-risk" class="form-input" style="width: 100%; padding: 0.75rem; border: 1px solid #2c3d52; border-radius: 2px; margin-bottom: 1rem;">
                 <option value="1">Risk 1 - Safe (No dangerous queries)</option>
                 <option value="2">Risk 2 - Medium (Heavy queries, OR-based)</option>
                 <option value="3">Risk 3 - High (May cause issues - UPDATE queries)</option>
             </select>
             
-            <h3 style="color: #dc3535; margin-top: 1rem;">Additional Options:</h3>
+            <h3 style="color: #ff3b4e; margin-top: 1rem;">[*] Additional Options:</h3>
             <div style="margin: 1rem 0;">
-                <label style="color: #dc3535; display: block; margin: 0.5rem 0; cursor: pointer;">
+                <label style="color: #ff3b4e; display: block; margin: 0.5rem 0; cursor: pointer;">
                     <input type="checkbox" id="sqlmap-enumerate-dbs"> 
                     Enumerate Databases (if vulnerable)
                 </label>
-                <label style="color: #dc3535; display: block; margin: 0.5rem 0; cursor: pointer;">
+                <label style="color: #ff3b4e; display: block; margin: 0.5rem 0; cursor: pointer;">
                     <input type="checkbox" id="sqlmap-current-user"> 
                     Get Current Database User
                 </label>
-                <label style="color: #dc3535; display: block; margin: 0.5rem 0; cursor: pointer;">
+                <label style="color: #ff3b4e; display: block; margin: 0.5rem 0; cursor: pointer;">
                     <input type="checkbox" id="sqlmap-current-db"> 
                     Get Current Database Name
                 </label>
             </div>
             
-            <div style="color: #dc3535; margin-top: 1.5rem; display: flex; gap: 1rem;">
+            <div style="color: #ff3b4e; margin-top: 1.5rem; display: flex; gap: 1rem;">
                 <button onclick="window.startSQLMapTest(this.parentElement.parentElement.parentElement)" class="btn btn-danger" style="flex: 1;">
-                    🎯 Start SQL Injection Test
+                    [>] START SQL INJECTION TEST
                 </button>
                 <button onclick="this.parentElement.parentElement.parentElement.remove()" class="btn btn-secondary" style="flex: 1;">
-                    Cancel
+                    [x] CANCEL
                 </button>
             </div>
         </div>
@@ -1874,7 +1832,7 @@ function showSQLMapDialog() {
     `;
     
     document.body.appendChild(dialog);
-    console.log('✅ SQLMap dialog displayed');
+    console.log(' SQLMap dialog displayed');
 }
 
 async function startSQLMapTest(dialogElement) {
@@ -1914,11 +1872,11 @@ async function startSQLMapTest(dialogElement) {
     if (container) {
         container.innerHTML = `
             <div class="card" style="margin-bottom: 2rem;">
-                <div style="padding: 1.5rem; background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%); color: white; border-radius: 8px;">
-                    <h3 style="margin: 0 0 1rem 0; color: white;">🗡️ SQLMap Test in Progress</h3>
-                    <p style="margin: 0.5rem 0;">Target: ${url}</p>
-                    <p style="margin: 0.5rem 0;">Level: ${level} | Risk: ${risk}</p>
-                    <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">⏱️ This may take 3-5 minutes...</p>
+                <div style="padding: 1.5rem; background: linear-gradient(135deg, #0e141d 0%, #1a2432 100%); border-radius: 2px;">
+                    <h3 style="margin: 0 0 1rem 0; color: #00ff88;">[>] SQLMap Test in Progress</h3>
+                    <p style="margin: 0.5rem 0;">[*] Target: ${url}</p>
+                    <p style="margin: 0.5rem 0;">[*] Level: ${level} | Risk: ${risk}</p>
+                    <p style="margin: 0.5rem 0 0 0; opacity: 0.9;">[*] This may take 3-5 minutes...</p>
                     <div class="spinner" style="margin-top: 1rem;"></div>
                 </div>
             </div>
@@ -1945,15 +1903,15 @@ async function startSQLMapTest(dialogElement) {
         const data = await response.json();
         
         if (response.ok) {
-            console.log('✅ SQLMap test started:', data);
+            console.log(' SQLMap test started:', data);
             
             if (container) {
                 container.innerHTML = `
                     <div class="card" style="margin-bottom: 2rem;">
-                        <div style="padding: 1.5rem; background: #d4edda; border-left: 4px solid #28a745; border-radius: 4px;">
-                            <h3 style="margin: 0 0 0.5rem 0; color: #155724;">✅ SQLMap Test Started</h3>
-                            <p style="margin: 0.5rem 0; color: #155724;">${data.message || 'Test is running in background'}</p>
-                            <p style="margin: 0.5rem 0 0 0; color: #155724;">⏳ Checking for results every 10 seconds...</p>
+                        <div style="padding: 1.5rem; background: rgba(0, 255, 136, 0.06); border-left: 4px solid #00ff88; border-radius: 2px;">
+                            <h3 style="margin: 0 0 0.5rem 0; color: #00ff88;">[+] SQLMap Test Started</h3>
+                            <p style="margin: 0.5rem 0; color: #00ff88;">[*] ${data.message || 'Test is running in background'}</p>
+                            <p style="margin: 0.5rem 0 0 0; color: #00ff88;">[*] Checking for results every 10 seconds...</p>
                         </div>
                     </div>
                 `;
@@ -1967,14 +1925,14 @@ async function startSQLMapTest(dialogElement) {
         }
         
     } catch (error) {
-        console.error('❌ SQLMap test error:', error);
+        console.error(' SQLMap test error:', error);
         
         if (container) {
             container.innerHTML = `
                 <div class="card" style="margin-bottom: 2rem;">
-                    <div style="padding: 1.5rem; background: #f8d7da; border-left: 4px solid #dc3545; border-radius: 4px;">
-                        <h3 style="margin: 0 0 0.5rem 0; color: #721c24;">❌ SQLMap Test Error</h3>
-                        <p style="margin: 0; color: #721c24;">${error.message}</p>
+                    <div style="padding: 1.5rem; background: rgba(255, 59, 78, 0.06); border-left: 4px solid #ff3b4e; border-radius: 2px;">
+                        <h3 style="margin: 0 0 0.5rem 0; color: #ff3b4e;">[-] SQLMap Test Error</h3>
+                        <p style="margin: 0; color: #ff3b4e;">${error.message}</p>
                     </div>
                 </div>
             `;
@@ -1983,7 +1941,7 @@ async function startSQLMapTest(dialogElement) {
 }
 
 let sqlmapPollAttempts = 0;
-const maxSQLMapPollAttempts = 30; // 5 minutes (30 × 10 seconds)
+const maxSQLMapPollAttempts = 30; // 5 minutes (30 x 10 seconds)
 
 function pollSQLMapResults() {
     setTimeout(async () => {
@@ -1995,7 +1953,7 @@ function pollSQLMapResults() {
             const data = await response.json();
             
             if (data.results && data.results.length > 0) {
-                console.log(`✅ Found ${data.results.length} SQLMap results`);
+                console.log(` Found ${data.results.length} SQLMap results`);
                 displaySQLMapResults(data.results);
                 sqlmapPollAttempts = 0;
             } else {
@@ -2006,9 +1964,9 @@ function pollSQLMapResults() {
                     if (container) {
                         container.innerHTML = `
                             <div class="card" style="margin-bottom: 2rem;">
-                                <div style="padding: 1.5rem; background: #fff3cd; border-left: 4px solid #ffc107; border-radius: 4px;">
-                                    <h3 style="margin: 0 0 0.5rem 0; color: #856404;">⚠️ Test Still Running</h3>
-                                    <p style="margin: 0; color: #856404;">SQLMap test is taking longer than expected. Refresh the page in a few minutes.</p>
+                                <div style="padding: 1.5rem; background: rgba(255, 176, 32, 0.06); border-left: 4px solid #ffb020; border-radius: 2px;">
+                                    <h3 style="margin: 0 0 0.5rem 0; color: #ffb020;">[~] Test Still Running</h3>
+                                    <p style="margin: 0; color: #ffb020;">[*] SQLMap test is taking longer than expected. Refresh the page in a few minutes.</p>
                                 </div>
                             </div>
                         `;
@@ -2039,14 +1997,14 @@ function displaySQLMapResults(results) {
     container.scrollIntoView({ behavior: 'smooth', block: 'start' });
     
     let html = `
-        <h3 style="margin: 2rem 0 1rem 0; color: #333;">🗡️ SQLMap Test Results</h3>
+        <h3 style="margin: 2rem 0 1rem 0; color: #00ff88; text-transform: uppercase; letter-spacing: 1px;">[SQLMAP] Test Results</h3>
     `;
     
     results.forEach((result, index) => {
-        const borderColor = result.vulnerable ? '#dc3545' : '#28a745';
-        const bgColor = result.vulnerable ? '#f8d7da' : '#d4edda';
-        const textColor = result.vulnerable ? '#721c24' : '#155724';
-        const icon = result.vulnerable ? '❌' : '✅';
+        const borderColor = result.vulnerable ? '#ff3b4e' : '#00ff88';
+        const bgColor = result.vulnerable ? 'rgba(255, 59, 78, 0.06)' : 'rgba(0, 255, 136, 0.06)';
+        const textColor = result.vulnerable ? '#ff3b4e' : '#00ff88';
+        const icon = result.vulnerable ? '[!]' : '[+]';
         
         // Parse injections
         let injections = [];
@@ -2068,43 +2026,43 @@ function displaySQLMapResults(results) {
             <div class="card" style="margin-bottom: 1.5rem; border-left: 4px solid ${borderColor};">
                 <div style="padding: 1.5rem;">
                     <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
-                        <h4 style="margin: 0; color: #333;">${icon} SQL Injection Test</h4>
+                        <h4 style="margin: 0; color: #e6eef6;">${icon} SQL Injection Test</h4>
                         <button onclick="deleteSQLMapResult(${result.id})" class="btn btn-danger btn-small">
-                            🗑️ Delete
+                            DELETE
                         </button>
                     </div>
                     
-                    <div style="background: ${bgColor}; padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;">
+                    <div style="background: ${bgColor}; padding: 0.75rem; border-radius: 2px; margin-bottom: 1rem;">
                         <p style="margin: 0; color: ${textColor}; font-weight: 600;">
-                            ${result.vulnerable ? '❌ VULNERABLE - SQL Injection Found!' : '✅ SECURE - No SQL Injection Detected'}
+                            ${result.vulnerable ? '[!] VULNERABLE - SQL Injection Found!' : '[+] SECURE - No SQL Injection Detected'}
                         </p>
                     </div>
                     
                     <div style="margin-bottom: 1rem;">
-                        <p style="margin: 0.5rem 0;"><strong>🎯 Target URL:</strong> ${result.url}</p>
-                        <p style="margin: 0.5rem 0;"><strong>📊 Status:</strong> ${result.status}</p>
-                        ${result.dbms ? `<p style="margin: 0.5rem 0;"><strong>💾 Database:</strong> ${result.dbms}</p>` : ''}
-                        <p style="margin: 0.5rem 0;"><strong>🕐 Started:</strong> ${new Date(result.started_at).toLocaleString()}</p>
-                        ${result.completed_at ? `<p style="margin: 0.5rem 0;"><strong>✅ Completed:</strong> ${new Date(result.completed_at).toLocaleString()}</p>` : ''}
+                        <p style="margin: 0.5rem 0;"><strong>[*] Target URL:</strong> ${result.url}</p>
+                        <p style="margin: 0.5rem 0;"><strong>[*] Status:</strong> ${result.status}</p>
+                        ${result.dbms ? `<p style="margin: 0.5rem 0;"><strong>[*] Database:</strong> ${result.dbms}</p>` : ''}
+                        <p style="margin: 0.5rem 0;"><strong>[*] Started:</strong> ${new Date(result.started_at).toLocaleString()}</p>
+                        ${result.completed_at ? `<p style="margin: 0.5rem 0;"><strong>[*] Completed:</strong> ${new Date(result.completed_at).toLocaleString()}</p>` : ''}
                     </div>
                     
                     ${injections.length > 0 ? `
-                        <div style="background: #fff3cd; padding: 1rem; border-left: 3px solid #ffc107; margin: 1rem 0; border-radius: 4px;">
-                            <strong>💉 Injection Points Found:</strong>
+                        <div style="background: rgba(255, 176, 32, 0.06); padding: 1rem; border-left: 3px solid #ffb020; margin: 1rem 0; border-radius: 2px;">
+                            <strong style="color: #ffb020;">[!] Injection Points Found:</strong>
                             ${injections.map(inj => `
-                                <div style="margin: 0.75rem 0; padding: 0.5rem; background: white; border-radius: 4px;">
+                                <div style="margin: 0.75rem 0; padding: 0.5rem; background: #141c28; border-radius: 2px;">
                                     <p style="margin: 0.25rem 0;"><strong>Parameter:</strong> ${inj.parameter || 'N/A'}</p>
                                     <p style="margin: 0.25rem 0;"><strong>Type:</strong> ${inj.type || 'N/A'}</p>
                                     <p style="margin: 0.25rem 0;"><strong>Title:</strong> ${inj.title || 'N/A'}</p>
-                                    ${inj.payload ? `<p style="margin: 0.25rem 0; font-family: monospace; font-size: 0.85rem; word-break: break-all;"><strong>Payload:</strong> ${inj.payload}</p>` : ''}
+                                    ${inj.payload ? `<p style="margin: 0.25rem 0; font-family: monospace; font-size: 0.85rem; word-break: break-all; color: #00ff88;"><strong>Payload:</strong> ${inj.payload}</p>` : ''}
                                 </div>
                             `).join('')}
                         </div>
                     ` : ''}
                     
                     ${databases.length > 0 ? `
-                        <div style="background: #e7f3ff; padding: 1rem; border-left: 3px solid #2196f3; margin: 1rem 0; border-radius: 4px;">
-                            <strong>💾 Databases Found:</strong>
+                        <div style="background: rgba(0, 212, 255, 0.06); padding: 1rem; border-left: 3px solid #00d4ff; margin: 1rem 0; border-radius: 2px;">
+                            <strong style="color: #00d4ff;">[+] Databases Found:</strong>
                             <ul style="margin: 0.5rem 0; padding-left: 1.5rem;">
                                 ${databases.map(db => `<li>${db}</li>`).join('')}
                             </ul>
@@ -2112,9 +2070,9 @@ function displaySQLMapResults(results) {
                     ` : ''}
                     
                     ${result.error ? `
-                        <div style="background: #f8d7da; padding: 0.75rem; border-left: 3px solid #dc3545; margin-top: 1rem; border-radius: 4px;">
-                            <strong>⚠️ Error:</strong>
-                            <p style="margin: 0.5rem 0 0 0; color: #721c24;">${result.error}</p>
+                        <div style="background: rgba(255, 59, 78, 0.06); padding: 0.75rem; border-left: 3px solid #ff3b4e; margin-top: 1rem; border-radius: 2px;">
+                            <strong style="color: #ff3b4e;">[!] Error:</strong>
+                            <p style="margin: 0.5rem 0 0 0; color: #ff3b4e;">${result.error}</p>
                         </div>
                     ` : ''}
                 </div>
@@ -2126,7 +2084,7 @@ function displaySQLMapResults(results) {
 }
 
 async function deleteSQLMapResult(resultId) {
-    if (!confirm('Delete this SQLMap test result?')) return;
+    if (!confirm('[!] Delete this SQLMap test result?')) return;
     
     try {
         const response = await fetch(`${API_URL}/sqlmap-results/${resultId}`, {
@@ -2144,11 +2102,11 @@ async function deleteSQLMapResult(resultId) {
                 document.getElementById('sqlmap-results-container').style.display = 'none';
             }
             
-            alert('✅ SQLMap result deleted');
+            alert('[OK] SQLMap result deleted');
         }
     } catch (error) {
         console.error('Error deleting SQLMap result:', error);
-        alert('❌ Error deleting result');
+        alert('[FAIL] Error deleting result');
     }
 }
 
@@ -2158,14 +2116,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // SQLMap button
     const sqlmapBtn = document.getElementById('sqlmap-test-btn');
     if (sqlmapBtn) {
-        console.log('✅ SQLMap button found');
+        console.log(' SQLMap button found');
         sqlmapBtn.addEventListener('click', showSQLMapDialog);
     }
     
     // Hashcat button
     const hashcatBtn = document.getElementById('hashcat-crack-btn');
     if (hashcatBtn) {
-        console.log('✅ Hashcat button found');
+        console.log(' Hashcat button found');
         hashcatBtn.addEventListener('click', showHashcatDialog);
     }
     
@@ -2202,7 +2160,7 @@ async function loadSQLMapResults() {
 //     }
 // }
 
-// ── Load existing Hashcat results on page load ──
+// Load existing Hashcat results on page load
 function loadHashcatResults() {
     fetch(`${API_URL}/scans/${scanId}/hashcat-results`)
         .then(r => r.json())
@@ -2212,7 +2170,7 @@ function loadHashcatResults() {
                 displayHashcatResults(data.results);
             } else {
                 const c = document.getElementById('hashcat-results-container');
-                if (c) c.innerHTML = '<p style="color:#666;">No cracking jobs yet. Click the button above to start.</p>';
+                if (c) c.innerHTML = '<p style="color:#b8c6d4;">No cracking jobs yet. Click the button above to start.</p>';
             }
         })
         .catch(err => console.error('loadHashcatResults error:', err));
@@ -2238,7 +2196,7 @@ function discoverHashes() {
             if (data.results && data.results.length > 0) {
                 const latestResult = data.results[0];
                 
-                resultsDiv.innerHTML = '<p>🔍 Searching for password hashes...</p>';
+                resultsDiv.innerHTML = '<p>[*] Searching for password hashes...</p>';
                 
                 // Discover hashes
                 return fetch(`/api/v1/scans/${scanId}/discover-hashes`, {
@@ -2247,7 +2205,7 @@ function discoverHashes() {
                     body: JSON.stringify({sqli_result_id: latestResult.id})
                 });
             } else {
-                resultsDiv.innerHTML = '<p>❌ No SQLMap results found. Run SQL injection test first.</p>';
+                resultsDiv.innerHTML = '<p>[!] No SQLMap results found. Run SQL injection test first.</p>';
                 return null;
             }
         })
@@ -2260,9 +2218,9 @@ function discoverHashes() {
             
             if (data.success && data.hashes) {
                 let html = `<div class="success-box">
-                    <h4>✅ Found ${data.hashes_found} Password Hashes!</h4>
-                    <p>Hashes ready for Hashcat cracking:</p>
-                    <div style="max-height: 300px; overflow-y: auto; background: #f5f5f5; padding: 10px; border-radius: 5px;">`;
+                    <h4>[+] Found ${data.hashes_found} Password Hashes!</h4>
+                    <p>[*] Hashes ready for Hashcat cracking:</p>
+                    <div style="max-height: 300px; overflow-y: auto; background: #0e141d; padding: 10px; border: 1px solid #2c3d52; border-radius: 2px;">`;
                 
                 data.hashes.forEach(h => {
                     html += `<div style="margin: 5px 0; font-family: monospace;">
@@ -2272,20 +2230,20 @@ function discoverHashes() {
                 
                 html += `</div>
                     <button onclick="sendHashesToHashcat(${JSON.stringify(data.hashes).replace(/"/g, '&quot;')})" class="btn btn-primary" style="margin-top: 10px;">
-                        🔓 Crack with Hashcat
+                        [>] CRACK WITH HASHCAT
                     </button>
                 </div>`;
                 
                 resultsDiv.innerHTML = html;
             } else {
                 resultsDiv.innerHTML = `<div class="warning-box">
-                    <p>⚠️ ${data.message || 'No hashes found'}</p>
+                    <p>[!] ${data.message || 'No hashes found'}</p>
                     <p>${data.suggestion || ''}</p>
                 </div>`;
             }
         })
         .catch(error => {
-            resultsDiv.innerHTML = `<p class="error">❌ Error: ${error.message}</p>`;
+            resultsDiv.innerHTML = `<p class="error">[FAIL] Error: ${error.message}</p>`;
         });
 }
 
@@ -2295,18 +2253,32 @@ function sendHashesToHashcat(hashes) {
     const hashStrings = hashes.map(h => h.hash);
     
     // Scroll to Hashcat section
-    document.getElementById('hashcat-section').scrollIntoView({behavior: 'smooth'});
+    const hashcatSection = document.getElementById('hashcat-container') || document.getElementById('hashcat-section');
+    if (hashcatSection) {
+        hashcatSection.scrollIntoView({ behavior: 'smooth' });
+    }
     
-    // Fill in Hashcat form
+    // Open the Hashcat dialog
+    showHashcatDialog();
+    
+    // Fill in Hashcat form once the dialog is rendered
     setTimeout(() => {
-        document.getElementById('hashcat-hashes').value = hashStrings.join('\n');
-        document.getElementById('hashcat-type').value = hashType;
+        const textarea = document.getElementById('hashcat-hashes');
+        const typeSelect = document.getElementById('hashcat-type');
+        
+        if (textarea) textarea.value = hashStrings.join('\n');
+        if (typeSelect) typeSelect.value = hashType;
         
         // Auto-start cracking
-        if (confirm('Start cracking these hashes now?')) {
-            startHashcatCrack();
+        if (confirm('[!] Start cracking these hashes now?')) {
+            const overlay = textarea ? textarea.closest('.modal-overlay') : null;
+            if (overlay) {
+                startHashcatCrack(overlay);
+            } else {
+                startHashcatCrack();
+            }
         }
-    }, 500);
+    }, 300);
 }
 
 // Show hash discovery button when SQLMap finds SQLi

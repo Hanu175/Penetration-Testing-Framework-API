@@ -53,7 +53,7 @@ scanForm.addEventListener('submit', async function(e) {
     
     // Disable form
     submitBtn.disabled = true;
-    submitBtn.innerHTML = '⏳ Starting Scan...';
+    submitBtn.innerHTML = '>_ Starting Scan...';
     hideMessages();
     
     // Send request to API
@@ -81,14 +81,14 @@ scanForm.addEventListener('submit', async function(e) {
             // Error from API
             showError(data.error || 'Failed to start scan');
             submitBtn.disabled = false;
-            submitBtn.innerHTML = '🚀 Start Scan';
+            submitBtn.innerHTML = '>_ Start Scan';
         }
         
     } catch (error) {
         console.error('Error:', error);
         showError('Cannot connect to API server. Make sure it is running on http://localhost:5000');
         submitBtn.disabled = false;
-        submitBtn.innerHTML = '🚀 Start Scan';
+        submitBtn.innerHTML = '>_ Start Scan';
     }
 });
 
@@ -96,7 +96,7 @@ scanForm.addEventListener('submit', async function(e) {
 function showSuccess(data) {
     successMessage.style.display = 'block';
     successMessage.innerHTML = `
-        <strong>✅ Scan Started Successfully!</strong>
+        <strong>[OK] Scan Started Successfully!</strong>
         <p>Scan ID: <strong>#${data.scan_id}</strong></p>
         <p>${data.message}</p>
         <div style="margin-top: 1rem;">

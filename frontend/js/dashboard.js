@@ -120,7 +120,7 @@ function createScanRow(scan) {
     // Delete button
     const deleteBtn = document.createElement('button');
     deleteBtn.className = 'btn btn-danger btn-small';
-    deleteBtn.textContent = '🗑️';
+    deleteBtn.textContent = 'DEL';
     deleteBtn.title = 'Delete scan';
     deleteBtn.onclick = () => deleteScan(scan.id);
     tdActions.appendChild(deleteBtn);
@@ -150,13 +150,13 @@ function getVulnerabilityBadge(count, scan) {
     let html = `<strong>${count}</strong>`;
     
     if (scan.critical_count > 0) {
-        html += ` <span style="color: #dc3545;">●${scan.critical_count}</span>`;
+        html += ` <span class="badge badge-danger">[C ${scan.critical_count}]</span>`;
     }
     if (scan.high_count > 0) {
-        html += ` <span style="color: #fd7e14;">●${scan.high_count}</span>`;
+        html += ` <span class="badge badge-warning">[H ${scan.high_count}]</span>`;
     }
     if (scan.medium_count > 0) {
-        html += ` <span style="color: #ffc107;">●${scan.medium_count}</span>`;
+        html += ` <span class="badge badge-info">[M ${scan.medium_count}]</span>`;
     }
     
     return html;
@@ -183,8 +183,8 @@ function showError(message) {
     const tbody = document.getElementById('scans-tbody');
     tbody.innerHTML = `
         <tr>
-            <td colspan="7" style="text-align: center; color: #dc3545; padding: 2rem;">
-                ⚠️ ${message}
+            <td colspan="7" style="text-align: center; color: #ff3b4e; padding: 2rem;">
+                [!] ${message}
             </td>
         </tr>
     `;
@@ -194,7 +194,8 @@ function showError(message) {
 async function deleteScan(scanId) {
     // Confirm deletion
     const confirmed = confirm(
-        `⚠️ Are you sure you want to delete this scan?\n\n` +
+        `[!] DELETE CONFIRMATION\n\n` +
+        `Are you sure you want to delete this scan?\n\n` +
         `This will permanently delete:\n` +
         `- Scan data\n` +
         `- All discovered hosts and ports\n` +
@@ -216,16 +217,16 @@ async function deleteScan(scanId) {
         
         if (response.ok) {
             // Show success message
-            alert('✅ Scan deleted successfully!');
+            alert('[OK] Scan deleted successfully!');
             
             // Reload dashboard
             loadDashboard();
         } else {
-            alert(`❌ Error: ${data.error}`);
+            alert(`[FAIL] Error: ${data.error}`);
         }
         
     } catch (error) {
         console.error('Error deleting scan:', error);
-        alert('❌ Failed to delete scan. Make sure the API server is running.');
+        alert('[FAIL] Failed to delete scan. Make sure the API server is running.');
     }
 }

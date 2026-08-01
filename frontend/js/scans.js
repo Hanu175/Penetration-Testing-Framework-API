@@ -65,7 +65,7 @@ function createScanRow(scan) {
         <td>${formatDate(scan.started_at || scan.created_at)}</td>
         <td style="display: flex; gap: 0.5rem;">
         <a href="scan-details.html?id=${scan.id}" class="btn btn-secondary btn-small">View</a>
-        <button onclick="deleteScan(${scan.id})" class="btn btn-danger btn-small" title="Delete">🗑️</button>
+        <button onclick="deleteScan(${scan.id})" class="btn btn-danger btn-small" title="Delete">DEL</button>
         </td>
         
     `;
@@ -95,13 +95,13 @@ function getVulnerabilityBadge(scan) {
   let html = `<strong>${total}</strong>`;
 
   if (scan.critical_count > 0) {
-    html += ` <span style="color: #dc3545;">●${scan.critical_count}</span>`;
+    html += ` <span class="badge badge-danger">[C ${scan.critical_count}]</span>`;
   }
   if (scan.high_count > 0) {
-    html += ` <span style="color: #fd7e14;">●${scan.high_count}</span>`;
+    html += ` <span class="badge badge-warning">[H ${scan.high_count}]</span>`;
   }
   if (scan.medium_count > 0) {
-    html += ` <span style="color: #ffc107;">●${scan.medium_count}</span>`;
+    html += ` <span class="badge badge-info">[M ${scan.medium_count}]</span>`;
   }
 
   return html;
@@ -123,8 +123,8 @@ function showError(message) {
   const tbody = document.getElementById("scans-tbody");
   tbody.innerHTML = `
         <tr>
-            <td colspan="9" style="text-align: center; color: #dc3545; padding: 2rem;">
-                ⚠️ ${message}
+            <td colspan="9" style="text-align: center; color: #ff3b4e; padding: 2rem;">
+                [!] ${message}
             </td>
         </tr>
     `;
@@ -134,7 +134,7 @@ function showError(message) {
 // Delete scan function
 async function deleteScan(scanId) {
     const confirmed = confirm(
-        '⚠️ Delete this scan?\n\nThis will permanently delete all scan data and cannot be undone!'
+        '[!] Delete this scan?\n\nThis will permanently delete all scan data and cannot be undone!'
     );
     
     if (!confirmed) return;
@@ -147,13 +147,13 @@ async function deleteScan(scanId) {
         const data = await response.json();
         
         if (response.ok) {
-            alert('✅ Scan deleted successfully!');
+            alert('[OK] Scan deleted successfully!');
             loadScans(currentPage);  // Reload current page
         } else {
-            alert(`❌ Error: ${data.error}`);
+            alert(`[FAIL] Error: ${data.error}`);
         }
     } catch (error) {
         console.error('Error:', error);
-        alert('❌ Failed to delete scan.');
+        alert('[FAIL] Failed to delete scan.');
     }
 }
